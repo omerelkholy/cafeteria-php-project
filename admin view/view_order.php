@@ -1,18 +1,39 @@
+<?php
+require('../components/connect.php');
+session_start();
+// $query= "select p.name, u.name, status, quantity, date, price from users u, products p, orders where user_id = u.id and product_id = p.id ;";
+// $statement = $connect->prepare($query);
+// $statement->execute();
+
+// $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orders - Processing</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Merienda:wght@300..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
     <style>
+        * {
+            font-family: "Outfit", serif;
+        }
         body {
             background-color: #f5f5dc;
             display: flex;
             height: 100vh;
             overflow-x: hidden;
         }
+
         .navbar-custom {
             background-color: #8b6b61;
         }
@@ -21,6 +42,7 @@
             padding: 40px 20px 20px;
             width: 100%;
             background-color: #f5f5dc;
+            margin-left: 250px;
         }
 
         .section {
@@ -56,7 +78,8 @@
             background-color: #f9f6f4;
         }
 
-        tbody td, thead th {
+        tbody td,
+        thead th {
             padding: 10px;
             text-align: center;
         }
@@ -84,8 +107,9 @@
         }
     </style>
 </head>
+
 <body>
-    
+    <?php require('sidebar.inc.php'); ?>
 
     <div class="content">
         <div class="section">
@@ -134,7 +158,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.querySelectorAll('.bi-trash').forEach(button => {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function() {
                 const row = this.closest('tr');
                 if (row) {
                     row.remove();
@@ -144,4 +168,5 @@
     </script>
 
 </body>
+
 </html>

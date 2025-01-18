@@ -50,8 +50,7 @@ body{
 }
 
 .login-box form .field .btn{
-    margin-top: 30px;
-    margin-bottom: 10px;
+    margin-bottom: 40px;
     background-color: rgb(104, 104, 223);
     color: white;
     transition: .3s;

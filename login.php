@@ -16,11 +16,11 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
     if($result){
     if($result['user_type'] == 'admin'){
             $_SESSION['email']=$email;
-            header("location:user view/myorder.php");
+            header("location:admin view/view_user.php");
     }else if($result['user_type'] == 'user'){
             $_SESSION['email']=$email;
             $_SESSION['room_no']=$result['room_no'];
-            header("location:user view/home.php");
+            header("location:user view/userhome.php");
     }
 
     }else{

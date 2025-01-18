@@ -1,10 +1,10 @@
 <?php
 require('../components/connect.php');
-$query= "select * from users order by user_type desc;";
+$query= "select * from products order by category desc;";
 $statement = $connect->prepare($query);
 $statement->execute();
 
-$users = $statement->fetchAll(PDO::FETCH_ASSOC);
+$products = $statement->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -104,29 +104,27 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
   <!-- Content -->
   <div class="content">
     <div class="section">
-      <h2 class="section-title">Manage Users</h2>
+      <h2 class="section-title">Manage Products</h2>
       <div class="d-flex justify-content-end mb-3">
-        <a href="../register.php" class="btn btn-primary">Add User</a>
+        <a href="product_add.php" class="btn btn-primary">Add Product</a>
       </div>
       <table class="table table-striped">
         <thead>
           <tr>
             <th>Name</th>
-            <th>Room</th>
+            <th>price</th>
             <th>Image</th>
-            <th>Ext</th>
-            <th>User type</th>
+            <th>Category</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          <?php foreach($users as $user): ?>
+          <?php foreach($products as $product): ?>
           <tr>
-            <td><?= $user['name'] ?></td>
-            <td><?= $user['room_no'] ?></td>
-            <td><img src="" alt="User Image" style="width: 40px; height: 40px;"></td>
-            <td>5605</td>
-            <td><?= $user['user_type'] ?></td>
+            <td><?= $product['name'] ?></td>
+            <td><?= $product['price']." EGP" ?></td>
+            <td><img src="" alt="product Image" style="width: 40px; height: 40px;"></td>
+            <td><?= $product['category'] ?></td>
             <td class="action-icons">
               <i class="bi bi-pencil-square" title="Edit"></i>
               <i class="bi bi-trash" title="Delete"></i>

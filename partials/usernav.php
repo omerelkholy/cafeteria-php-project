@@ -1,7 +1,8 @@
+
 <!-- navbar -->
 <!DOCTYPE html>
 <html lang="en">
-
+    <?php $pageName = substr($_SERVER['SCRIPT_NAME'], strpos($_SERVER['SCRIPT_NAME'], "/")+1); ?>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -41,7 +42,7 @@
             color: rgba(255, 255, 255, 0.8) !important;
             margin: 0 1rem;
             transition: all 0.3s ease;
-            font-size: 20px;
+            font-size: 18px;
         }
 
         .navbar .nav-link:hover,
@@ -55,6 +56,7 @@
             color: var(--coffee-primary) !important;
             border-color: white !important;
             transition: all 0.3s ease;
+            border-radius: 15px !important;
         }
 
         .btn-outline-coffee:hover {
@@ -96,13 +98,13 @@
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Home</a>
+                        <a class="nav-link <?= $pageName ==  'user view/userHome.php' ? 'active':'';?>" href="/user view/userHome.php">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Orders</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Menu</a>
+                        <a class="nav-link <?= $pageName ==  'user view/product.php' ? 'active':'';?>" href="/user view/product.php">Menu</a>
                     </li>
 
                 </ul>

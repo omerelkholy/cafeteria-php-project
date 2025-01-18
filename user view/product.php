@@ -1,3 +1,10 @@
+
+<?php
+require('../partials/usernav.php');
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,14 +19,14 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
-     <link rel="stylesheet" href="css/product.css">
+     <link rel="stylesheet" href="css/product.css?v=<?php echo time(); ?>">
      <link rel="stylesheet" href="css/style.min.css">
      <link href="img/fav.ico" rel="icon">
 
 </head>
 <body>
      <!-- Cart Icon -->
-     <a href="cart.html" class="cart-toggle-btn">
+     <a href="cart.php" class="cart-toggle-btn">
         <i class="fas fa-shopping-cart"></i>
     </a>
      <!-- Cart Sidebar -->
@@ -88,6 +95,8 @@
     <button class="sidebar-toggle-btn" onclick="toggleSidebar()">
         <i class="fas fa-heart"></i> 
     </button>
+
+    <?php require('../partials/footer.php'); ?>
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->

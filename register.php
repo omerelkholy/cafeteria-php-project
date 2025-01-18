@@ -9,14 +9,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $password = md5($_POST['password']);
     $room_no = $_POST['room'];
+    $user_type = $_POST['user_type'];
 
-    $query = "insert into users (name, email, password, room_no) VALUES ('$username', '$email', '$password', '$room_no')";
-    
+    $query = "insert into users (name, email, password, room_no, user_type) VALUES (?, ?, ?, ?, ?)";
+
     $statement = $connect->prepare($query);
-    $result = $statement->execute();
+    $result = $statement->execute([$username,$email,$password,$room_no,$user_type]);
 
-
-
+    header("location:admin view/view_user.php");
 }
 
 
@@ -29,7 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 
 
-
+<?php
+require('admin view/sidebar.inc.php');
+?>
 
 
 <!DOCTYPE html>
@@ -43,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="/styling/registerstyle.css">
+    <link rel="stylesheet" href="styling/registerstyle.css?v=<?php echo time(); ?>">
 </head>
 
 <body>
@@ -52,6 +54,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <h4>Register</h4>
             <form action="" method="POST" enctype="multipart/form-data" class="mt-5">
                 <div class="myinput">
+                    <div class="field input">
+                        <label for="select">Is it a User or an Admin</label>
+                        <select name="user_type" id="user_type">
+                            <option value="user" selected>User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
                     <div class="field input">
                         <label for="username">User name</label>
                         <input type="text" name="username" placeholder="enter your user name" required>
@@ -66,8 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     <div class="field input">
                         <label for="select">Choose the room</label>
-                        <select name="room" id="room" required>
-                            <option value="none" disabled selected>choose user room</option>
+                        <select name="room" id="room">
+                            <option disabled selected value="null">choose user room</option>
                             <option value="200">200</option>
                             <option value="201">201</option>
                             <option value="202">202</option>
@@ -78,14 +87,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <option value="207">207</option>
                         </select>
                     </div>
-                    <div class="field input">
+                    <div class="field input mt-3">
                         <label for="image">choose an image</label>
-                        <div class="mt-1">
+                        <div>
                             <input class="form-control" type="file" name="image" id="image" accept=".jpg, .png, .jpeg, .svg">
                         </div>
                     </div>
                     <div class="field">
-                        <input type="submit" class="btn" name="login" value="Sign Up">
+                        <input type="submit" class="btn" name="register" value="Sign Up">
                     </div>
                 </div>
             </form>

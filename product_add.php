@@ -1,3 +1,8 @@
+<?php
+require('admin view/sidebar.inc.php');
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
