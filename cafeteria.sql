@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jan 15, 2025 at 05:39 PM
+-- Generation Time: Jan 18, 2025 at 05:11 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -51,6 +51,18 @@ CREATE TABLE `products` (
   `picture` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`id`, `name`, `price`, `category`, `picture`) VALUES
+(5, 'coffee', 4.99, 'hot drinks', NULL),
+(6, 'mocha', 9.99, 'cold drinks', NULL),
+(7, 'Milk Shake', 6.50, 'cold drinks', NULL),
+(8, 'HTML', 9.99, 'desserts', NULL),
+(9, 'mohamed', 5.00, 'cold drinks', NULL),
+(10, 'tea', 4.99, 'hot drinks', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -72,12 +84,14 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `room_no`, `picture`, `user_type`) VALUES
-(2, 'admin', 'admin@admin.com', 'admin', NULL, './image/admin.jpg', 'admin'),
-(3, 'omer', 'omer@gmail.com', 'omer', 207, './image/omer.jpeg', 'user'),
-(4, 'Hitorinah', 'omerelkholy@gmail.com', '916468a2b614352a9b444bd0fbba39f8', 200, NULL, 'user'),
-(5, 'Hitorinah55', 'hitori@gmail.com', '76274bc788378a36b3345a49948045e9', 200, NULL, 'user'),
-(6, 'shimaa', 'shimaa@gmail.com', 'f1db13460f388fabfda9258941e15a83', 203, NULL, 'admin'),
-(7, 'hadeer', 'hadeer@gmail.com', 'cb3d1dcded5015113153b2fca3cc9819', 205, NULL, 'user');
+(1, ' XpeedyMody', 'Xpeedymody@fla7.com', '51782d21e8740d52edb53a903b9d8fb4', 207, NULL, 'user'),
+(2, 'Therio', 'theriotheo@gmail.com', '41e12af73bc9e6e01598b66bae450b0d', 207, NULL, 'user'),
+(3, 'admin', 'admin@admin.com', '21232f297a57a5a743894a0e4a801fc3', NULL, NULL, 'admin'),
+(4, 'fohien', 'am.foohien@gmail.com', '94e8cde4612b3fd390677d42e7b22002', 207, NULL, 'user'),
+(5, 'hadeer', 'hadeer@gmail.com', 'cb3d1dcded5015113153b2fca3cc9819', NULL, NULL, 'admin'),
+(6, 'muhmmad', 'mohamed@gmail.com', '309cd3800aacbd003ac36199fa537295', NULL, NULL, 'admin'),
+(7, 'omer', 'omer@gmail.com', '916468a2b614352a9b444bd0fbba39f8', 203, NULL, 'user'),
+(8, 'shimaa', 'shimaa@gmail.com', 'f1db13460f388fabfda9258941e15a83', NULL, NULL, 'admin');
 
 --
 -- Indexes for dumped tables
@@ -94,7 +108,8 @@ ALTER TABLE `orders`
 -- Indexes for table `products`
 --
 ALTER TABLE `products`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
 
 --
 -- Indexes for table `users`
@@ -111,13 +126,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Constraints for dumped tables
