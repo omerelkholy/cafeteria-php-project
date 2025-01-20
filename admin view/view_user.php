@@ -1,3 +1,13 @@
+<?php
+require('../components/connect.php');
+$query= "select * from users order by user_type desc;";
+$statement = $connect->prepare($query);
+$statement->execute();
+
+$users = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,11 +17,15 @@
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Merienda:wght@300..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      font-family: "Outfit", serif;
     }
     html, body {
       height: 100%;
@@ -32,7 +46,7 @@
     .content {
       padding: 40px 20px 20px;
       padding-top: 50px;
-      width: 100%;
+      margin-left: 250px;
     }
 
     .section {
@@ -83,58 +97,61 @@
     tbody tr:nth-child(even) {
       background-color: #f9f6f4;
     }
+    .edit-icon {
+  text-decoration: none;
+  color: inherit; 
+  cursor: pointer;
+  margin-right: 10px;
+  font-size: 1.2rem;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.edit-icon:hover {
+  color: brown; 
+  transform: scale(1.2);
+}
+
   </style>
 </head>
 <body>
-
+<?php require('sidebar.inc.php'); ?>
   <!-- Content -->
   <div class="content">
     <div class="section">
       <h2 class="section-title">Manage Users</h2>
       <div class="d-flex justify-content-end mb-3">
-        <a href="Register.php" class="btn btn-primary">Add User</a>
+        <a href="../register.php" class="btn btn-primary">Add User</a>
       </div>
       <table class="table table-striped">
         <thead>
           <tr>
             <th>Name</th>
             <th>Room</th>
+            <th>Email</th>
+            <th>User type</th>
             <th>Image</th>
-            <th>Ext</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
+          <?php foreach($users as $user): ?>
           <tr>
-            <td>Shimaa</td>
-            <td>2010</td>
-            <td><img src="imgs/user1.png" alt="User Image" style="width: 40px; height: 40px;"></td>
-            <td>5605</td>
+            <td><?= $user['name'] ?></td>
+            <td><?= $user['room_no'] ?></td>
+            <td><?= $user['email'] ?></td>
+            <td><?= $user['user_type'] ?></td>
+
+
+            <td><img src="" alt="User Image" style="width: 40px; height: 40px;"></td>
+            <!-- <td>5605</td>
+            <td><?= $user['user_type'] ?></td> -->
             <td class="action-icons">
-              <i class="bi bi-pencil-square" title="Edit"></i>
-              <i class="bi bi-trash" title="Delete"></i>
-            </td>
+  <a href="edit_user.php?id=<?= $user['id'] ?>" class="edit-icon bi bi-pencil-square" title="Edit"></a>
+  <i class="bi bi-trash" title="Delete"></i>
+</td>
+
           </tr>
-          <tr>
-            <td>Maxi</td>
-            <td>2010</td>
-            <td><img src="imgs/user2.png" alt="User Image" style="width: 40px; height: 40px;"></td>
-            <td>5605</td>
-            <td class="action-icons">
-              <i class="bi bi-pencil-square" title="Edit"></i>
-              <i class="bi bi-trash" title="Delete"></i>
-            </td>
-          </tr>
-          <tr>
-            <td>Nada</td>
-            <td>2010</td>
-            <td><img src="imgs/user3.png" alt="User Image" style="width: 40px; height: 40px;"></td>
-            <td>5605</td>
-            <td class="action-icons">
-              <i class="bi bi-pencil-square" title="Edit"></i>
-              <i class="bi bi-trash" title="Delete"></i>
-            </td>
-          </tr>
+          <?php endforeach; ?>
         </tbody>
       </table>
     </div>
