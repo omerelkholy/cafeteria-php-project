@@ -13,7 +13,7 @@ $connect = new PDO("mysql:host=$server;dbname=$db", $user, $password);
 // }
 
 // $query = "SELECT * FROM `users`";
-// $statment = $connect->prepare($query);
-// $statment->execute();
-// $result = $statment->fetchAll(PDO::FETCH_ASSOC);
+// $statement = $connect->prepare($query);
+// $statement->execute();
+// $result = $statement->fetchAll(PDO::FETCH_ASSOC);
 // print_r($result);

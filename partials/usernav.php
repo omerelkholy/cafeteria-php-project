@@ -86,7 +86,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark py-3">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
+            <a class="navbar-brand d-flex align-items-center" href="/user view/userHome.php">
                 <img src="/beans.png" alt="Coffee Shop Logo" class="me-2">
                 <span class="brand-text fw-bold">Foamous</span>
             </a>

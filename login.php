@@ -12,19 +12,19 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
     $statment = $connect->prepare($query);
     $statment->execute();
     $result = $statment->fetch(PDO::FETCH_ASSOC);
-   
+    $errors = [];
     if($result){
     if($result['user_type'] == 'admin'){
-            $_SESSION['email']=$email;
             header("location:admin view/view_user.php");
     }else if($result['user_type'] == 'user'){
-            $_SESSION['email']=$email;
-            $_SESSION['room_no']=$result['room_no'];
             header("location:user view/userhome.php");
     }
 
     }else{
-        echo 'invalid email or password';
+        $errors['email'] = "Invalid Email or Password.";
+        $_SESSION['errors'] = $errors;
+        header('location:login.php');
+        exit();
     }
 }
 
@@ -58,6 +58,12 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
                         <label for="email">Email</label>
                         <input type="text" name="email" placeholder="enter your email" required>
                     </div>
+                    <?php
+                    if(isset($_SESSION['errors']['email'])){
+                        print "<p class='text-danger'> ". $_SESSION['errors']['email'] ." </p>";
+                    }
+                    unset($_SESSION['errors']);
+                    ?>
                     <div class="field input">
                         <label for="password">Password</label>
                         <input type="password" name="password" placeholder="enter your password" required>

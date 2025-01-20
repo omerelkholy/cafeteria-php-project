@@ -97,6 +97,15 @@ $products = $statement->fetchAll(PDO::FETCH_ASSOC);
     tbody tr:nth-child(even) {
       background-color: #f9f6f4;
     }
+
+    img{
+      border-radius: 50%;
+      width: 60px !important;
+      height: 60px !important;
+    }
+    .bi-trash,.bi-pencil-square{
+      color: #6b4f4f;
+    }
   </style>
 </head>
 <body>
@@ -123,11 +132,11 @@ $products = $statement->fetchAll(PDO::FETCH_ASSOC);
           <tr>
             <td><?= $product['name'] ?></td>
             <td><?= $product['price']." EGP" ?></td>
-            <td><img src="" alt="product Image" style="width: 40px; height: 40px;"></td>
+            <td><img src="productpictures/<?= $product['picture'] ?>" alt="product Image" style="width: 40px; height: 40px;"></td>
             <td><?= $product['category'] ?></td>
             <td class="action-icons">
               <i class="bi bi-pencil-square" title="Edit"></i>
-              <i class="bi bi-trash" title="Delete"></i>
+             <a href="product_delete.php?id=<?=$product['id']?>"> <i class="bi bi-trash" title="Delete"></i> </a>
             </td>
           </tr>
           <?php endforeach; ?>
@@ -137,7 +146,7 @@ $products = $statement->fetchAll(PDO::FETCH_ASSOC);
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
+  <!-- <script>
     document.querySelectorAll('.bi-trash').forEach(button => {
       button.addEventListener('click', function () {
           const row = this.closest('tr');
@@ -146,6 +155,6 @@ $products = $statement->fetchAll(PDO::FETCH_ASSOC);
           }
       });
     });
-  </script>
+  </script> -->
 </body>
 </html>

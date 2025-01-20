@@ -97,6 +97,14 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
     tbody tr:nth-child(even) {
       background-color: #f9f6f4;
     }
+    img{
+      border-radius: 50%;
+      width: 60px !important;
+      height: 60px !important;
+    }
+    .bi-trash,.bi-pencil-square{
+      color: #6b4f4f;
+    }
   </style>
 </head>
 <body>
@@ -124,12 +132,12 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
           <tr>
             <td><?= $user['name'] ?></td>
             <td><?= $user['room_no'] ?></td>
-            <td><img src="" alt="User Image" style="width: 40px; height: 40px;"></td>
+            <td><img src="../userpictures/<?= $user['picture'] ?>" alt="User Image" style="width: 40px; height: 40px;"></td>
             <td>5605</td>
             <td><?= $user['user_type'] ?></td>
             <td class="action-icons">
               <i class="bi bi-pencil-square" title="Edit"></i>
-              <i class="bi bi-trash" title="Delete"></i>
+              <a href="user_delete.php?id=<?=$user['id']?>"><i class="bi bi-trash" title="Delete"></i></a>
             </td>
           </tr>
           <?php endforeach; ?>
@@ -139,7 +147,7 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
+  <!-- <script>
     document.querySelectorAll('.bi-trash').forEach(button => {
       button.addEventListener('click', function () {
           const row = this.closest('tr');
@@ -148,6 +156,6 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
           }
       });
     });
-  </script>
+  </script> -->
 </body>
 </html>

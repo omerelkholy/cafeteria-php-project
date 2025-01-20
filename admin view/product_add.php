@@ -6,10 +6,21 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $price = $_POST['price'];
     $category = $_POST['category'];
 
-    $query = "insert into products (name,price,category) VALUES ('$productName', '$price', '$category')";
+    if(isset($_FILES['picture'])){
+        $picName = $_FILES['picture']['name'];
+        $tmp_picName = $_FILES['picture']['tmp_name'];
+        $folder = "productpictures/" . $picName;
+        move_uploaded_file($tmp_picName, $folder);
+
+    }
+
+
+
+
+    $query = "insert into products (name,price,category,picture) VALUES (?, ?, ?, ?)";
 
     $statement = $connect->prepare($query);
-    $result = $statement->execute();
+    $result = $statement->execute([$productName, $price ,$category, $picName]);
 
     header("location:view_product.php");
 }
@@ -104,10 +115,10 @@ require('sidebar.inc.php');
                         <h2 class="text-center m-0">Add New Product</h2>
                     </div>
                     <div class="p-4">
-                        <form method="POST">
+                        <form action="" method="POST" enctype="multipart/form-data">
                             <div class="mb-4">
-                                <label for="productImage" class="form-label">Product Image</label>
-                                <input type="file" class="form-control" id="productImage" accept="image/*">
+                                <label for="picture" class="form-label">Product Image</label>
+                                <input type="file" name="picture" class="form-control" id="picture" accept=".jpg, .png, .jpeg, .svg">
                             </div>
 
                             <div class="mb-4">

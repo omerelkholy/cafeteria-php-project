@@ -9,6 +9,7 @@ body{
     background-color: rgb(102, 85, 53);
     background-color: rgb(163, 151, 129);
     background-color: #a78d78;
+    /* height: 1000px; */
 }
 
 
@@ -16,7 +17,7 @@ body{
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    height: 120vh;
 }
 
 .login-box{
@@ -39,7 +40,7 @@ body{
     justify-content: center;
     align-items: center;
     width: 500px;
-    height: 400px;
+    height: 500px;
 }
 
 .login-box form .field{
