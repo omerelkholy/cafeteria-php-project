@@ -19,7 +19,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
         $_SESSION['user_type']=$result['user_type'];
         $_SESSION['user_pic']=$result['picture'];
     if($result['user_type'] == 'admin'){
-            header("location:admin view/view_user.php");
+            header("location:admin view/dashboard.php");
     }else if($result['user_type'] == 'user'){
         header("Location: user view/userhome.php?id=". $result['id'] ." ");
     }

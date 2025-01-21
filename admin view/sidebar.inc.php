@@ -59,7 +59,7 @@
     <a href="../admin view/view_checks.php">View Checks</a>
     <a href="../admin view/view_order.php">View Orders</a>
     <a href="../admin view/view_product.php">View Products</a>
-    <a href="../admin view/order_for_user.php">Order for User</a>
+    <a href="../admin view/admin_order.php">Order for User</a>
     <a href="../login.php" class="btn1">
         <i class="fas fa-sign-out-alt me-2"></i>Logout
     </a>

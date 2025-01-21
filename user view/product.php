@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 <?php
 require('../partials/usernav.php');
 ?>
@@ -34,14 +27,14 @@ if (isset($_POST['add_to_cart'])) {
       $qty = $_POST['qty'];
       $qty = filter_var($qty, FILTER_SANITIZE_STRING);
 
-      $check_cart_numbers = $conn->prepare("SELECT * FROM `cart` WHERE name = ? AND user_id = ?");
+      $check_cart_numbers = $connect->prepare("SELECT * FROM `orders` WHERE name = ? AND user_id = ?");
       $check_cart_numbers->execute([$name, $user_id]);
 
       if ($check_cart_numbers->rowCount() > 0) {
          $message[] = 'Already added to cart!';
       } else {
 
-         $insert_cart = $conn->prepare("INSERT INTO `cart` (user_id, pid, name, price, quantity, picture) VALUES (?, ?, ?, ?, ?, ?)");
+         $insert_cart = $connect->prepare("INSERT INTO `orders` (user_id, pid, name, price, quantity, picture) VALUES (?, ?, ?, ?, ?, ?)");
          $insert_cart->execute([$user_id, $pid, $name, $price, $qty, $picture]);
          $message[] = 'Added to cart!';
       }
@@ -117,7 +110,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <form action="" method="post" class="card-product card shadow-sm border-0">
                             <input type="hidden" name="pid" value="' . $product['id'] . '">
                             <input type="hidden" name="name" value="' . $product['name'] . '">
-                            <input type="hidden" name="price" value="' . $product['price'] . '">
+                            <input type="hidden" name="price" value="' . $product['price'] . ' ">
                             <input type="hidden" name="picture" value="' . $product['picture'] . '">
                             <input type="hidden" name="qty" value="1">
                             <div class="container-img position-relative overflow-hidden">
@@ -149,7 +142,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <i class="fa-solid fa-basket-shopping"></i>
                                     </button>
                                     <p class="price mb-0">
-                                        <span class="text-primary fw-bold">' . $product['price'] . '</span>
+                                        <span class="text-primary fw-bold">' . $product['price'] . ' EGP</span>
                                         ' . ($product['discount'] ? '<span class="text-muted text-decoration-line-through ms-2">$5.30</span>' : '') . '
                                     </p>
                                 </div>
@@ -202,7 +195,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <i class="fa-solid fa-basket-shopping"></i>
                                         </button>
                                         <p class="price mb-0">
-                                            <span class="text-primary fw-bold">' . $product['price'] . '</span>
+                                            <span class="text-primary fw-bold">' . $product['price'] . ' EGP</span>
                                             ' . ($product['discount'] ? '<span class="text-muted text-decoration-line-through ms-2">$5.30</span>' : '') . '
                                         </p>
                                     </div>
@@ -256,7 +249,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <i class="fa-solid fa-basket-shopping"></i>
                                         </button>
                                         <p class="price mb-0">
-                                            <span class="text-primary fw-bold">' . $product['price'] . '</span>
+                                            <span class="text-primary fw-bold">' . $product['price'] . ' EGP</span>
                                             ' . ($product['discount'] ? '<span class="text-muted text-decoration-line-through ms-2">$5.30</span>' : '') . '
                                         </p>
                                     </div>

@@ -25,14 +25,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $picture = $_FILES['picture'];
 
    
-    $picturePath = $product['picture']; 
-    if ($picture['error'] == 0) {
-        $targetDir = "../uploads/";
-        $targetFile = $targetDir . basename($picture["name"]);
-        if (move_uploaded_file($picture["tmp_name"], $targetFile)) {
-            $picturePath = "uploads/" . basename($picture["name"]);
-        }
-    }
+     // Handle image upload
+     $picture = $product['picture']; // Keep the old picture if not uploaded
+     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
+         $imageName = $_FILES['image']['name'];
+         $imageTmpName = $_FILES['image']['tmp_name'];
+         $imagePath = 'productpictures/' . $imageName; 
+         move_uploaded_file($imageTmpName, $imagePath);
+         $picture = $imagePath; 
+     }
 
   
     $updateQuery = "UPDATE products SET name = :product_name, price = :price, category = :category, picture = :picture WHERE id = :id";
@@ -41,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'product_name' => $productName,
         'price' => $price,
         'category' => $category,
-        'picture' => $picturePath,
+        'picture' => $picture,
         'id' => $productId
     ];
 
@@ -58,12 +59,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Edit Product</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
   <style>
     body {
       background-color: #f5f5dc;
-      font-family: Arial, sans-serif;
+      font-family: "Outfit", serif;
       display: flex;
       justify-content: center;
       padding-top: 20px;

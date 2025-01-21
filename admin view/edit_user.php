@@ -27,15 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
         $imageName = $_FILES['image']['name'];
         $imageTmpName = $_FILES['image']['tmp_name'];
-        $imagePath = 'uploads/' . $imageName; 
+        $imagePath = '../userpictures/' . $imageName;
         move_uploaded_file($imageTmpName, $imagePath);
-        $picture = $imagePath; 
+        $picture = $imagePath;
     }
 
-    
+
     $updateQuery = "UPDATE users SET name = :name, email = :email, user_type = :user_type, picture = :picture";
     if ($user_type == 'user') {
-        $updateQuery .= ", room_no = :room_no"; 
+        $updateQuery .= ", room_no = :room_no";
     }
     $updateQuery .= " WHERE id = :id";
 
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'id' => $userId
     ];
     if ($user_type == 'user') {
-        $params['room_no'] = $room_no; 
+        $params['room_no'] = $room_no;
     }
 
     $updateStmt->execute($params);
@@ -60,72 +60,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit User</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-  <style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: "Outfit", sans-serif;
-    }
-    html, body {
-        height: 100%;
-        overflow-x: hidden;
-    }
-    body {
-        background-color: #f5f5dc;
-        font-family: Arial, sans-serif;
-        display: flex;
-        justify-content: center;
-        padding-top: 20px;
-    }
-    .content {
-        width: 100%;
-        max-width: 800px;
-        background-color: #ffffff;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .section-title {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: #6b4f4f;
-        margin-bottom: 15px;
-    }
-    .form-label {
-        color: #6b4f4f;
-    }
-    .form-control, .form-select {
-        border-radius: 50px;
-        transition: border-color 0.3s, box-shadow 0.3s;
-        border-color: #ccc;
-        font-size: 1rem;
-    }
-    .form-control:hover, .form-select:hover {
-        border-color: #8b6b61;
-        box-shadow: 0 0 5px rgba(139, 107, 97, 0.5);
-    }
-    .form-control:focus, .form-select:focus {
-        box-shadow: 0 0 5px rgba(139, 107, 97, 0.5);
-    }
-    .btn-primary {
-        background-color: #6b4f4f;
-        border: none;
-    }
-    .btn-primary:hover {
-        background-color: #a38181;
-    }
-    .btn {
-        margin-top: 20px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Outfit", sans-serif;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            background-color: #f5f5dc;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            padding-top: 20px;
+        }
+
+        .content {
+            width: 100%;
+            max-width: 800px;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #6b4f4f;
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            color: #6b4f4f;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 50px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            border-color: #ccc;
+            font-size: 1rem;
+        }
+
+        .form-control:hover,
+        .form-select:hover {
+            border-color: #8b6b61;
+            box-shadow: 0 0 5px rgba(139, 107, 97, 0.5);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            box-shadow: 0 0 5px rgba(139, 107, 97, 0.5);
+        }
+
+        .btn-primary {
+            background-color: #6b4f4f;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #a38181;
+        }
+
+        .btn {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 
 <body>
@@ -172,4 +191,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
 </body>
+
 </html>
