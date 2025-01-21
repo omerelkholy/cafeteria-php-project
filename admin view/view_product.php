@@ -135,7 +135,7 @@ $products = $statement->fetchAll(PDO::FETCH_ASSOC);
             <td><img src="productpictures/<?= $product['picture'] ?>" alt="product Image" style="width: 40px; height: 40px;"></td>
             <td><?= $product['category'] ?></td>
             <td class="action-icons">
-              <i class="bi bi-pencil-square" title="Edit"></i>
+            <a href="edit_product.php?id=<?= $product['id'] ?>"><i class=" edit-icon bi bi-pencil-square" title="Edit"></i></a>
              <a href="product_delete.php?id=<?=$product['id']?>"> <i class="bi bi-trash" title="Delete"></i> </a>
             </td>
           </tr>

@@ -105,6 +105,20 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
     .bi-trash,.bi-pencil-square{
       color: #6b4f4f;
     }
+    .edit-icon {
+  text-decoration: none;
+  color: inherit; 
+  cursor: pointer;
+  margin-right: 10px;
+  font-size: 1.2rem;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.edit-icon:hover {
+  color: brown; 
+  transform: scale(1.2);
+}
+
   </style>
 </head>
 <body>
@@ -121,6 +135,8 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
           <tr>
             <th>Name</th>
             <th>Room</th>
+            <th>Email</th>
+            <th>User type</th>
             <th>Image</th>
             <th>Ext</th>
             <th>User type</th>
@@ -135,8 +151,17 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
             <td><img src="../userpictures/<?= $user['picture'] ?>" alt="User Image" style="width: 40px; height: 40px;"></td>
             <td>5605</td>
             <td><?= $user['user_type'] ?></td>
+            <td><?= $user['name'] ?></td>
+            <td><?= $user['room_no'] ?></td>
+            <td><?= $user['email'] ?></td>
+            <td><?= $user['user_type'] ?></td>
+
+
+            <td><img src="" alt="User Image" style="width: 40px; height: 40px;"></td>
+            <!-- <td>5605</td>
+            <td><?= $user['user_type'] ?></td> -->
             <td class="action-icons">
-              <i class="bi bi-pencil-square" title="Edit"></i>
+  <a href="edit_user.php?id=<?= $user['id'] ?>" class="edit-icon bi bi-pencil-square" title="Edit"></a>
               <a href="user_delete.php?id=<?=$user['id']?>"><i class="bi bi-trash" title="Delete"></i></a>
             </td>
           </tr>

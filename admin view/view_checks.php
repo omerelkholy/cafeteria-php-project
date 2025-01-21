@@ -1,3 +1,108 @@
+<?php
+require('../components/connect.php');
+session_start();
+
+if (isset($_POST['dateFrom']) || isset($_POST['dateTo']) || isset($_POST['userId'])) {
+    $whereClauses = [];
+
+    if (isset($_POST['dateFrom']) && !empty($_POST['dateFrom'])) {
+        $dateFrom = $_POST['dateFrom'];
+        $whereClauses[] = "orders.date >= :dateFrom";
+    }
+
+    if (isset($_POST['dateTo']) && !empty($_POST['dateTo'])) {
+        $dateTo = $_POST['dateTo'];
+        $whereClauses[] = "orders.date <= :dateTo";
+    }
+
+    if (isset($_POST['userId']) && !empty($_POST['userId'])) {
+        $userId = $_POST['userId'];
+        $whereClauses[] = "orders.user_id = :userId";
+    }
+
+    $query = "
+        SELECT 
+            orders.id,
+            users.name AS user_name,
+            products.name AS product_name,
+            orders.status,
+            orders.quantity,
+            orders.date,
+            orders.price
+        FROM orders
+        JOIN users ON orders.user_id = users.id
+        JOIN products ON orders.product_id = products.id
+    ";
+
+    if (count($whereClauses) > 0) {
+        $query .= " WHERE " . implode(" AND ", $whereClauses);
+    }
+
+    $query .= " ORDER BY orders.date DESC";
+
+    $statement = $connect->prepare($query);
+
+   
+    if (isset($dateFrom)) {
+        $statement->bindParam(':dateFrom', $dateFrom);
+    }
+    if (isset($dateTo)) {
+        $statement->bindParam(':dateTo', $dateTo);
+    }
+    if (isset($userId)) {
+        $statement->bindParam(':userId', $userId);
+    }
+
+    $statement->execute();
+    $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
+} else {
+   
+    $query = "
+        SELECT 
+            orders.id,
+            users.name AS user_name,
+            products.name AS product_name,
+            orders.status,
+            orders.quantity,
+            orders.date,
+            orders.price
+        FROM orders
+        JOIN users ON orders.user_id = users.id
+        JOIN products ON orders.product_id = products.id
+        ORDER BY orders.date DESC;
+    ";
+
+    $statement = $connect->prepare($query);
+    $statement->execute();
+    $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+$userQuery = "
+    SELECT DISTINCT users.id, users.name
+    FROM orders
+    JOIN users ON orders.user_id = users.id
+";
+$userStatement = $connect->prepare($userQuery);
+$userStatement->execute();
+$users = $userStatement->fetchAll(PDO::FETCH_ASSOC);
+
+if (isset($_POST['delete_order_id'])) {
+    $orderId = $_POST['delete_order_id'];
+
+    $deleteQuery = "DELETE FROM orders WHERE id = :id";
+    $deleteStmt = $connect->prepare($deleteQuery);
+    $deleteStmt->bindParam(':id', $orderId, PDO::PARAM_INT);
+
+    if ($deleteStmt->execute()) {
+        echo 'success'; 
+    } else {
+        echo 'error'; 
+    }
+    exit; 
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -34,50 +139,12 @@
             background-color: #8b6b61;
         }
 
-        .sidebar {
-            position: fixed;
-            top: 20px; 
-            bottom: 20px; 
-            left: 9px;
-            height: auto;
-            width: 250px;
-            background-color: #6b4f4f;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            overflow-y: auto;
-        }
-
-        .sidebar a {
-            display: block;
-            color: white;
-            padding: 10px;
-            text-decoration: none;
-            font-size: 1.1rem;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            text-align: center; 
-            transition: background-color 0.3s ease;
-        }
-
-        .sidebar a:hover {
-            background-color: #d2a679;
-            color: white; 
-        }
-
-        
-        .sidebar a:first-child {
-            margin-top: 20px; 
-        }
-
         .content {
-    margin-left: 250px;
-    padding: 40px 20px 20px; 
-    padding-top: 50px; 
-    width: 100%;
-    background-color: #f5f5dc;
-}
-
+            padding: 40px 20px 20px;
+            width: 100%;
+            background-color: #f5f5dc;
+            margin-left: 250px;
+        }
 
         .section {
             background-color: #ffffff;
@@ -88,7 +155,7 @@
         }
 
         .section-title {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: bold;
             color: #6b4f4f;
             margin-bottom: 15px;
@@ -97,7 +164,6 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: fixed;
         }
 
         thead {
@@ -105,44 +171,18 @@
             color: #fff;
         }
 
-        tbody tr:nth-child(even) {
-            background-color: #f9f6f4;
-        }
-
         tbody tr:nth-child(odd) {
             background-color: #fff;
         }
 
-        tbody td, thead th {
-            padding: 4px 8px; 
-            text-overflow: ellipsis;
-            overflow: hidden;
-            white-space: nowrap;
-            font-size: 0.9rem;
-            word-wrap: break-word;
+        tbody tr:nth-child(even) {
+            background-color: #f9f6f4;
+        }
+
+        tbody td,
+        thead th {
+            padding: 10px;
             text-align: center;
-        }
-
-        th, td {
-            min-width: 120px; 
-        }
-
-        .status {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .status.processing {
-            color: #d2a679;
-        }
-
-        .status.completed {
-            color: #6b4f4f;
-        }
-
-        .status.deleted {
-            color: #8b6b61;
         }
 
         .action-icons i {
@@ -157,35 +197,41 @@
             transform: scale(1.2);
         }
 
-        .form-control, .form-select {
-            border-radius: 50px;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            border-color: #ccc;
-            font-size: 1rem;
+        .status.processing {
+            color: #d2a679;
         }
 
-        .form-control:hover, .form-select:hover {
-            border-color: #8b6b61;
-            box-shadow: 0 0 5px rgba(139, 107, 97, 0.5);
+        .status.completed {
+            color: green;
         }
 
-        .form-control:focus, .form-select:focus {
-            box-shadow: 0 0 5px rgba(139, 107, 97, 0.5);
-        }
-        
-        .modal-dialog {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .status.out-of-delivery {
+            color: #f0ad4e;
         }
 
-        .modal-content {
-            border-radius: 15px;
+        .status.deleted {
+            color: red;
         }
+
+        .edit-icon {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 1.2rem;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        .edit-icon:hover {
+            color: brown;
+            transform: scale(1.2);
+        }
+       
         .btn-primary {
       background-color: #6b4f4f;
       border: none;
     }
+
     .btn-primary:hover {
       background-color: #a38181;
     }
@@ -197,38 +243,31 @@
 </head>
 
 <body>
-    <div class="sidebar">
-        <a href="dashboard.php">Dashboard</a>
-        <a href="view_user.php">All Users</a>
-        <a href="view_checks.php">View Checks</a>
-        <a href="view_order.php">View Orders</a>
-        <a href="view_product.php">View Products</a>
-        <a href="order_for_user.php">Order for User</a>
-        <a href="../login.php" class="btn">
-        <i class="fas fa-sign-out-alt me-2"></i>Logout
-    </a>
-    </div>
-
+<?php require('sidebar.inc.php'); ?>
     <div class="content">
         <div class="section">
             <h2 class="section-title">Filters</h2>
-            <form>
+            <form method="POST" id="filtersForm">
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label for="dateFrom" class="form-label">Date From</label>
-                        <input type="date" id="dateFrom" class="form-control">
+                        <input type="date" id="dateFrom" name="dateFrom" class="form-control">
                     </div>
                     <div class="col-md-4">
                         <label for="dateTo" class="form-label">Date To</label>
-                        <input type="date" id="dateTo" class="form-control">
+                        <input type="date" id="dateTo" name="dateTo" class="form-control">
                     </div>
                     <div class="col-md-4">
                         <label for="userSelect" class="form-label">User</label>
-                        <select id="userSelect" class="form-select">
+                        <select id="userSelect" name="userId" class="form-select">
                             <option value="">Select User</option>
+                            <?php foreach ($users as $user): ?>
+                                <option value="<?php echo htmlspecialchars($user['id']); ?>"><?php echo htmlspecialchars($user['name']); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                 </div>
+                <button type="submit" class="btn btn-primary mt-3">Apply Filters</button>
             </form>
         </div>
 
@@ -237,130 +276,63 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Items</th>
-                        <th>Total Amount</th>
+                        <th>User Name</th>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
                         <th>Date & Time</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>shimaa</td>
-                        <td> Coffee (50 EGP)</td>
-                        <td>50 EGP</td>
-                        <td>2025-01-13 10:30 AM</td>
-                        <td class="status processing">
-                            <i class="bi bi-arrow-repeat"></i> Processing
-                        </td>
-                        <td class="action-icons">
-                            <i class="bi bi-eye view-btn" 
-                               data-name="shimaa" 
-                               data-item="Coffee" 
-                               data-price="50 EGP" 
-                               data-date="2025-01-13 10:30 AM" 
-                               data-status="Processing" 
-                               title="View"></i>
-                            <i class="bi bi-trash" title="Delete"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>nada</td>
-                        <td> Cappuccino (60 EGP)</td>
-                        <td>60 EGP</td>
-                        <td>2025-01-12 11:00 AM</td>
-                        <td class="status completed">
-                            <i class="bi bi-check-circle"></i> Completed
-                        </td>
-                        <td class="action-icons">
-                            <i class="bi bi-eye view-btn" 
-                               data-name="nada" 
-                               data-item="Cappuccino" 
-                               data-price="60 EGP" 
-                               data-date="2025-01-12 11:00 AM" 
-                               data-status="Completed" 
-                               title="View"></i>
-                            <i class="bi bi-trash" title="Delete"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>abdallah</td>
-                        <td> Espresso (80 EGP)</td>
-                        <td>80 EGP</td>
-                        <td>2025-01-13 9:13 AM</td>
-                        <td class="status deleted">
-                            <i class="bi bi-trash"></i> Deleted
-                        </td>
-                        <td class="action-icons">
-                            <i class="bi bi-eye view-btn" 
-                               data-name="abdallah" 
-                               data-item="Espresso" 
-                               data-price="80 EGP" 
-                               data-date="2025-01-13 9:13 AM" 
-                               data-status="Deleted" 
-                               title="View"></i>
-                            <i class="bi bi-trash" title="Delete"></i>
-                        </td>
-                    </tr>
+                    <?php foreach ($orders as $order): ?>
+                        <tr data-order-id="<?php echo htmlspecialchars($order['id']); ?>">
+                            <td><?php echo htmlspecialchars($order['user_name']); ?></td>
+                            <td><?php echo htmlspecialchars($order['product_name']); ?></td>
+                            <td><?php echo htmlspecialchars($order['quantity']); ?></td>
+                            <td><?php echo htmlspecialchars($order['price']) . " EGP"; ?></td>
+                            <td><?php echo htmlspecialchars($order['date']); ?></td>
+                            <td class="status <?php echo htmlspecialchars($order['status']); ?>">
+                                <?php 
+                                    if ($order['status'] == 'processing') {
+                                        echo '<i class="bi bi-arrow-repeat"></i> Processing';
+                                    } elseif ($order['status'] == 'out for delivery') {
+                                        echo '<i class="bi bi-truck"></i> Out for Delivery';
+                                    } elseif ($order['status'] == 'done') {
+                                        echo '<i class="bi bi-check-circle"></i> Done';
+                                    }
+                                ?>
+                            </td>
+                            <td class="action-icons">
+                                <a href="view_users_order.php?id=<?php echo htmlspecialchars($order['id']); ?>" class="edit-icon bi bi-eye" title="View"></a>
+                                <a href="javascript:void(0);" class="edit-icon bi bi-trash" title="Delete" onclick="deleteOrder(<?php echo htmlspecialchars($order['id']); ?>)"></a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="viewModalLabel">Order Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Name:</strong> <span id="modalName"></span></p>
-                    <p><strong>Item:</strong> <span id="modalItem"></span></p>
-                    <p><strong>Price:</strong> <span id="modalPrice"></span></p>
-                    <p><strong>Date & Time:</strong> <span id="modalDate"></span></p>
-                    <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
- 
-    document.querySelectorAll('.view-btn').forEach(button => {
-        button.addEventListener('click', function () {
-            const name = this.getAttribute('data-name');
-            const item = this.getAttribute('data-item');
-            const price = this.getAttribute('data-price');
-            const date = this.getAttribute('data-date');
-            const status = this.getAttribute('data-status');
+    function deleteOrder(orderId) {
+        const formData = new FormData();
+        formData.append('delete_order_id', orderId);
 
-            document.getElementById('modalName').textContent = name;
-            document.getElementById('modalItem').textContent = item;
-            document.getElementById('modalPrice').textContent = price;
-            document.getElementById('modalDate').textContent = date;
-            document.getElementById('modalStatus').textContent = status;
-
-            const viewModal = new bootstrap.Modal(document.getElementById('viewModal'));
-            viewModal.show();
-        });
-    });
-
-  
-    document.querySelectorAll('.bi-trash').forEach(button => {
-        button.addEventListener('click', function () {
-            const row = this.closest('tr');
-            if (row) {
-                row.remove();
+        fetch('', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.text())
+        .then(data => {
+            if (data === 'success') {
+                location.reload();
+            } else {
+                alert('An error occurred while deleting the order.');
             }
         });
-    });
+    }
 </script>
 
 </body>

@@ -1,26 +1,53 @@
 <?php
 require('../components/connect.php');
 session_start();
-// $query= "select p.name, u.name, status, quantity, date, price from users u, products p, orders where user_id = u.id and product_id = p.id ;";
-// $statement = $connect->prepare($query);
-// $statement->execute();
-
-// $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
 
 
+$query = "
+    SELECT 
+        orders.id,
+        users.name AS user_name,
+        products.name AS product_name,
+        orders.status,
+        orders.quantity,
+        orders.date,
+        orders.price
+    FROM orders
+    JOIN users ON orders.user_id = users.id
+    JOIN products ON orders.product_id = products.id
+    where status in( 'processing' ,'out for delivery')
+    ORDER BY orders.date DESC;
+";
+
+$statement = $connect->prepare($query);
+$statement->execute();
+$orders = $statement->fetchAll(PDO::FETCH_ASSOC);
 
 
+if (isset($_POST['delete_order_id'])) {
+    
+    $orderId = $_POST['delete_order_id'];
+
+    $deleteQuery = "DELETE FROM orders WHERE id = :id";
+    $deleteStmt = $connect->prepare($deleteQuery);
+    $deleteStmt->bindParam(':id', $orderId, PDO::PARAM_INT);
+    
+    
+    if ($deleteStmt->execute()) {
+        echo 'success'; 
+    } else {
+        echo 'error'; 
+    }
+    exit; 
+}
 ?>
-
-
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders - Processing</title>
+    <title>Orders</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,7 +63,6 @@ session_start();
             height: 100vh;
             overflow-x: hidden;
         }
-
         .navbar-custom {
             background-color: #8b6b61;
         }
@@ -99,18 +125,37 @@ session_start();
             transform: scale(1.2);
         }
 
-        .status {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
         .status.processing {
             color: #d2a679;
         }
+
+        .status.completed {
+            color: green;
+        }
+
+        .status.out-of-delivery {
+            color: #f0ad4e;
+        }
+
+        .status.deleted {
+            color: red;
+        }
+
+        .edit-icon {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 1.2rem;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        .edit-icon:hover {
+            color: brown;
+            transform: scale(1.2);
+        }
     </style>
 </head>
-
 <body>
     <?php require('sidebar.inc.php'); ?>
 
@@ -120,39 +165,40 @@ session_start();
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Items</th>
-                        <th>Total Amount</th>
+                        <th>User Name</th>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
                         <th>Date & Time</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>Shaimaa</td>
-                        <td>- Coffee (50 EGP)</td>
-                        <td>50 EGP</td>
-                        <td>2025-01-13 10:30 AM</td>
-                        <td class="status processing">
-                            <i class="bi bi-arrow-repeat"></i> Processing
-                        </td>
-                        <td class="action-icons">
-                            <i class="bi bi-trash" title="Delete"></i>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Ahmed</td>
-                        <td>- Latte (70 EGP)</td>
-                        <td>70 EGP</td>
-                        <td>2025-01-12 11:45 AM</td>
-                        <td class="status processing">
-                            <i class="bi bi-arrow-repeat"></i> Processing
-                        </td>
-                        <td class="action-icons">
-                            <i class="bi bi-trash" title="Delete"></i>
-                        </td>
-                    </tr>
+                    <?php foreach ($orders as $order): ?>
+                        <tr data-order-id="<?php echo htmlspecialchars($order['id']); ?>">
+                            <td><?php echo htmlspecialchars($order['user_name']); ?></td>
+                            <td><?php echo htmlspecialchars($order['product_name']); ?></td>
+                            <td><?php echo htmlspecialchars($order['quantity']); ?></td>
+                            <td><?php echo htmlspecialchars($order['price']) . " EGP"; ?></td>
+                            <td><?php echo htmlspecialchars($order['date']); ?></td>
+                            <td class="status <?php echo htmlspecialchars($order['status']); ?>">
+                                <?php 
+                                    if ($order['status'] == 'processing') {
+                                        echo '<i class="bi bi-arrow-repeat"></i> Processing';
+                                    } elseif ($order['status'] == 'out for delivery') {
+                                        echo '<i class="bi bi-truck"></i> Out of Delivery';
+                                    } elseif ($order['status'] == 'done') {
+                                        echo '<i class="bi bi-check-circle"></i> Done';
+                                    }
+                                ?>
+                            </td>
+                            <td class="action-icons">
+                                <a href="edit_order.php?id=<?php echo htmlspecialchars($order['id']); ?>" class="edit-icon bi bi-pencil-square" title="Edit"></a>
+                                <a href="javascript:void(0);" class="edit-icon bi bi-trash" title="Delete" onclick="deleteOrder(<?php echo htmlspecialchars($order['id']); ?>)"></a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
@@ -160,16 +206,26 @@ session_start();
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.querySelectorAll('.bi-trash').forEach(button => {
-            button.addEventListener('click', function() {
-                const row = this.closest('tr');
-                if (row) {
-                    row.remove();
-                }
-            });
-        });
+        function deleteOrder(orderId) {
+            if (confirm('Are you sure you want to delete this order?')) {
+              
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '', true);  
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        
+                        const row = document.querySelector(`tr[data-order-id='${orderId}']`);
+                        if (row) {
+                            row.remove();
+                        }
+                    } else {
+                        alert('Error deleting order!');
+                    }
+                };
+                xhr.send('delete_order_id=' + orderId); 
+            }
+        }
     </script>
-
 </body>
-
 </html>
