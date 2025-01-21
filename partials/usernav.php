@@ -1,3 +1,17 @@
+<?php
+require('../components/connect.php');
+require('../components/session.php');
+
+if(!isset($_SESSION['user_id'])){
+    header('location:../login.php');
+    exit();
+}
+
+
+$user_id=$_SESSION['user_id'];
+?>
+
+
 
 <!-- navbar -->
 <!DOCTYPE html>
@@ -101,7 +115,7 @@
                         <a class="nav-link <?= $pageName ==  'user view/userHome.php' ? 'active':'';?>" href="/user view/userHome.php">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Orders</a>
+                        <a class="nav-link <?= $pageName ==  'user view/order.php' ? 'active':'';?>" href="/user view/order.php">Orders</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= $pageName ==  'user view/product.php' ? 'active':'';?>" href="/user view/product.php">Menu</a>
@@ -109,7 +123,7 @@
 
                 </ul>
 
-                <a href="../login.php" class="btn btn-outline-coffee ms-lg-auto">
+                <a href="../Logout.php" class="btn btn-outline-coffee ms-lg-auto">
                     <i class="fas fa-sign-out-alt me-2"></i>Logout
                 </a>
             </div>
@@ -120,3 +134,7 @@
 </body>
 
 </html>
+
+<?php
+
+?>

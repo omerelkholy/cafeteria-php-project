@@ -135,10 +135,7 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
           <tr>
             <th>Name</th>
             <th>Room</th>
-            <th>Email</th>
-            <th>User type</th>
             <th>Image</th>
-            <th>Ext</th>
             <th>User type</th>
             <th>Action</th>
           </tr>
@@ -149,17 +146,7 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
             <td><?= $user['name'] ?></td>
             <td><?= $user['room_no'] ?></td>
             <td><img src="../userpictures/<?= $user['picture'] ?>" alt="User Image" style="width: 40px; height: 40px;"></td>
-            <td>5605</td>
             <td><?= $user['user_type'] ?></td>
-            <td><?= $user['name'] ?></td>
-            <td><?= $user['room_no'] ?></td>
-            <td><?= $user['email'] ?></td>
-            <td><?= $user['user_type'] ?></td>
-
-
-            <td><img src="" alt="User Image" style="width: 40px; height: 40px;"></td>
-            <!-- <td>5605</td>
-            <td><?= $user['user_type'] ?></td> -->
             <td class="action-icons">
   <a href="edit_user.php?id=<?= $user['id'] ?>" class="edit-icon bi bi-pencil-square" title="Edit"></a>
               <a href="user_delete.php?id=<?=$user['id']?>"><i class="bi bi-trash" title="Delete"></i></a>

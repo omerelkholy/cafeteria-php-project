@@ -14,10 +14,14 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
     $result = $statment->fetch(PDO::FETCH_ASSOC);
     $errors = [];
     if($result){
+        $_SESSION['user_id']=$result['id'];
+        $_SESSION['user_name']=$result['name'];
+        $_SESSION['user_type']=$result['user_type'];
+        $_SESSION['user_pic']=$result['picture'];
     if($result['user_type'] == 'admin'){
             header("location:admin view/view_user.php");
     }else if($result['user_type'] == 'user'){
-            header("location:user view/userhome.php");
+        header("Location: user view/userhome.php?id=". $result['id'] ." ");
     }
 
     }else{

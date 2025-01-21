@@ -1,24 +1,28 @@
  <?php
-
-// $host = 'localhost';
-// $dbname = 'cafeteria';
-// $username = 'root';
-// $password = '';
+require('../components/connect.php');
 
 
-// $conn = new mysqli($host, $username, $password, $dbname);
 
 
-// if ($conn->connect_error) {
-//     die("Connection failed: " . $conn->connect_error);
-// }
 
 
-// $totalUsers = $conn->query("SELECT COUNT(*) as total FROM users")->fetch_assoc()['total'];
-// $totalOrders = $conn->query("SELECT COUNT(*) as total FROM orders")->fetch_assoc()['total'];
-// $totalProducts = $conn->query("SELECT COUNT(*) as total FROM products")->fetch_assoc()['total'];
+$totalUsers = "SELECT COUNT(*) as total FROM users";
+$statement = $connect->prepare($totalUsers);
+$statement->execute();
+$resultUser = $statement->fetchAll(PDO::FETCH_ASSOC);
 
 
+
+$totalOrders = "SELECT COUNT(*) as total FROM orders";
+$statement = $connect->prepare($totalOrders);
+$statement->execute();
+$resultOrder = $statement->fetchAll(PDO::FETCH_ASSOC);
+
+
+$totalProducts = "SELECT COUNT(*) as total FROM products";
+$statement = $connect->prepare($totalProducts);
+$statement->execute();
+$resultProduct = $statement->fetchAll(PDO::FETCH_ASSOC);
 // $conn->close();
 ?> 
 
@@ -38,7 +42,9 @@
             padding: 20px;
         }
 
-
+        .container{
+            margin-left: 250px;
+        }
         .stat-card {
             background: linear-gradient(145deg, #f8f8f8, #e0e0e0);
             border: none;
@@ -82,20 +88,18 @@
 </head>
 
 <body>
+<?php require('sidebar.inc.php'); ?>
     <div class="container">
 
         <h1>Welcome to the Dashboard</h1>
 
         <div class="row">
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card stat-card text-center">
                     <h3>Total Users</h3>
                     <p>
-                         <?php
-                        //   echo 
-                        // $totalUsers; 
-                        ?> 
+                    <?= $resultUser[0]['total'] ?? 0; ?> 
                     </p>
                 </div>
             </div>
@@ -103,9 +107,9 @@
             <div class="col-md-4">
                 <div class="card stat-card text-center">
                     <h3>Total Orders</h3>
-                    <p><?php 
-                    // echo $totalOrders; 
-                    ?></p>
+                    <p>
+                    <?= $resultOrder[0]['total'] ?? 0; ?> 
+                    </p>
                 </div>
             </div>
 
@@ -113,9 +117,9 @@
             <div class="col-md-4">
                 <div class="card stat-card text-center">
                     <h3>Total Products</h3>
-                    <p><?php
-                    //  echo $totalProducts;
-                      ?></p>
+                    <p>
+                    <?= $resultProduct[0]['total'] ?? 0; ?> 
+                    </p>
                 </div>
             </div>
         </div>

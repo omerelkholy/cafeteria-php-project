@@ -118,7 +118,7 @@ require('sidebar.inc.php');
                         <form action="" method="POST" enctype="multipart/form-data">
                             <div class="mb-4">
                                 <label for="picture" class="form-label">Product Image</label>
-                                <input type="file" name="picture" class="form-control" id="picture" accept=".jpg, .png, .jpeg, .svg">
+                                <input type="file" name="picture" class="form-control" id="picture" accept=".jpg, .png, .jpeg, .svg" required>
                             </div>
 
                             <div class="mb-4">

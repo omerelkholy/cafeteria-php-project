@@ -1,15 +1,17 @@
 
+
+
+
+
+
+
 <?php
 require('../partials/usernav.php');
 ?>
-
-
-
 <?php
 
-include 'connect.php';
+require('../components/connect.php');
 
-session_start();
 
 if (isset($_SESSION['user_id'])) {
    $user_id = $_SESSION['user_id'];
@@ -27,8 +29,8 @@ if (isset($_POST['add_to_cart'])) {
       $name = filter_var($name, FILTER_SANITIZE_STRING);
       $price = $_POST['price'];
       $price = filter_var($price, FILTER_SANITIZE_STRING);
-      $image = $_POST['image'];
-      $image = filter_var($image, FILTER_SANITIZE_STRING);
+      $picture = $_POST['picture'];
+      $picture = filter_var($picture, FILTER_SANITIZE_STRING);
       $qty = $_POST['qty'];
       $qty = filter_var($qty, FILTER_SANITIZE_STRING);
 
@@ -39,15 +41,15 @@ if (isset($_POST['add_to_cart'])) {
          $message[] = 'Already added to cart!';
       } else {
 
-         $insert_cart = $conn->prepare("INSERT INTO `cart` (user_id, pid, name, price, quantity, image) VALUES (?, ?, ?, ?, ?, ?)");
-         $insert_cart->execute([$user_id, $pid, $name, $price, $qty, $image]);
+         $insert_cart = $conn->prepare("INSERT INTO `cart` (user_id, pid, name, price, quantity, picture) VALUES (?, ?, ?, ?, ?, ?)");
+         $insert_cart->execute([$user_id, $pid, $name, $price, $qty, $picture]);
          $message[] = 'Added to cart!';
       }
    }
 }
 
 
-$stmt = $conn->query("SELECT * FROM products");
+$stmt = $connect->query("SELECT * FROM products");
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -58,7 +60,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Discover delicious and fresh coffee at our store. Shop now for the best coffee blends!">
     <meta property="og:title" content="Fresh Coffee - Product Page">
-    <meta property="og:image" content="img/coffee-banner.jpg">
+    <meta property="og:picture" content="img/coffee-banner.jpg">
     <title>Product</title>
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
@@ -116,10 +118,10 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <input type="hidden" name="pid" value="' . $product['id'] . '">
                             <input type="hidden" name="name" value="' . $product['name'] . '">
                             <input type="hidden" name="price" value="' . $product['price'] . '">
-                            <input type="hidden" name="image" value="' . $product['image'] . '">
+                            <input type="hidden" name="picture" value="' . $product['picture'] . '">
                             <input type="hidden" name="qty" value="1">
                             <div class="container-img position-relative overflow-hidden">
-                                <img src="' . $product['image'] . '" alt="' . $product['name'] . '" class="img-fluid" />
+                                <img src="../admin view/productpictures/' . $product['picture'] . '" alt="' . $product['name'] . '" class="img-fluid" />
                                 ' . ($product['discount'] ? '<span class="discount badge bg-primary position-absolute top-0 start-0 m-2">' . $product['discount'] . '</span>' : '') . '
                                 <div class="button-group position-absolute top-0 end-0 d-flex flex-column gap-2 p-2">
                                     <button class="btn btn-outline-primary rounded-circle p-2" aria-label="View Product" data-bs-toggle="tooltip" data-bs-placement="top" title="View">
@@ -169,10 +171,10 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <input type="hidden" name="pid" value="' . $product['id'] . '">
                                 <input type="hidden" name="name" value="' . $product['name'] . '">
                                 <input type="hidden" name="price" value="' . $product['price'] . '">
-                                <input type="hidden" name="image" value="' . $product['image'] . '">
+                                <input type="hidden" name="picture" value="' . $product['picture'] . '">
                                 <input type="hidden" name="qty" value="1">
                                 <div class="container-img position-relative overflow-hidden">
-                                    <img src="' . $product['image'] . '" alt="' . $product['name'] . '" class="img-fluid" />
+                                    <img src="../admin view/productpictures/' . $product['picture'] . '" alt="' . $product['name'] . '" class="img-fluid" />
                                     ' . ($product['discount'] ? '<span class="discount badge bg-primary position-absolute top-0 start-0 m-2">' . $product['discount'] . '</span>' : '') . '
                                     <div class="button-group position-absolute top-0 end-0 d-flex flex-column gap-2 p-2">
                                         <button class="btn btn-outline-primary rounded-circle p-2" aria-label="View Product" data-bs-toggle="tooltip" data-bs-placement="top" title="View">
@@ -223,10 +225,10 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <input type="hidden" name="pid" value="' . $product['id'] . '">
                                 <input type="hidden" name="name" value="' . $product['name'] . '">
                                 <input type="hidden" name="price" value="' . $product['price'] . '">
-                                <input type="hidden" name="image" value="' . $product['image'] . '">
+                                <input type="hidden" name="picture" value="' . $product['picture'] . '">
                                 <input type="hidden" name="qty" value="1">
                                 <div class="container-img position-relative overflow-hidden">
-                                    <img src="' . $product['image'] . '" alt="' . $product['name'] . '" class="img-fluid" />
+                                    <img src="../admin view/productpictures/' . $product['picture'] . '" alt="' . $product['name'] . '" class="img-fluid" />
                                     ' . ($product['discount'] ? '<span class="discount badge bg-primary position-absolute top-0 start-0 m-2">' . $product['discount'] . '</span>' : '') . '
                                     <div class="button-group position-absolute top-0 end-0 d-flex flex-column gap-2 p-2">
                                         <button class="btn btn-outline-primary rounded-circle p-2" aria-label="View Product" data-bs-toggle="tooltip" data-bs-placement="top" title="View">

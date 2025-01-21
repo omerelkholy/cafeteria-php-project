@@ -33,7 +33,7 @@ $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         * {
-            /* font-family: "Outfit", serif; */
+            font-family: "Outfit", serif;
         }
         body {
             background-color: #f5f5dc;
@@ -154,10 +154,5 @@ $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.querySelectorAll('.bi-trash').forEach(button => {
-            button.addEventListener('click', function() {
-                const row = this.closest('tr');
-                if (row) {
-                    if (confirm('Are you sure you want to delete this order?')) {
-                       
+    </body>
+    </html>
