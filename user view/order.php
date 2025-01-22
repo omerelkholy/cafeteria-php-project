@@ -1,162 +1,189 @@
 <?php
-
 require('../components/connect.php');
+require('../components/session.php');
 
-// Corrected SQL query
-$query = "
-    SELECT 
-        orders.id AS order_id,
-        users.name AS user_name,
-        orders.total_amount,
-        orders.status,
-        orders.order_date AS date,
-        GROUP_CONCAT(products.name SEPARATOR ', ') AS product_names,
-        SUM(order_details.quantity) AS total_quantity
-    FROM orders
-    JOIN users ON orders.user_id = users.id
-    JOIN order_details ON orders.id = order_details.order_id
-    JOIN products ON order_details.product_id = products.id
-    GROUP BY orders.id
-    ORDER BY orders.order_date DESC;
-";
+// Redirect to login if user is not logged in
+if (!isset($_SESSION['user_id'])) {
+   header('location: ../login.php');
+   exit();
+}
 
-$statement = $connect->prepare($query);
-$statement->execute();
-$orders = $statement->fetchAll(PDO::FETCH_ASSOC);
+$user_id = $_SESSION['user_id'];
+$user_name = $_SESSION['user_name'];
+
+// Fetch orders for the logged-in user
+$select_orders = $connect->prepare('
+    SELECT o.id AS order_id, o.total_amount, o.status, o.order_date,
+           od.product_id, od.quantity, od.price,
+           p.name AS product_name
+    FROM orders o
+    JOIN order_details od ON o.id = od.order_id
+    JOIN products p ON od.product_id = p.id
+    WHERE o.user_id = ?
+    ORDER BY o.order_date DESC
+');
+$select_orders->execute([$user_id]);
+$orders = $select_orders->fetchAll(PDO::FETCH_ASSOC);
+
+// Group order details by order ID
+$grouped_orders = [];
+foreach ($orders as $order) {
+    $order_id = $order['order_id'];
+    if (!isset($grouped_orders[$order_id])) {
+        $grouped_orders[$order_id] = [
+            'order_id' => $order['order_id'],
+            'total_amount' => $order['total_amount'],
+            'status' => $order['status'],
+            'order_date' => $order['order_date'],
+            'products' => []
+        ];
+    }
+    $grouped_orders[$order_id]['products'][] = [
+        'product_name' => $order['product_name'],
+        'quantity' => $order['quantity'],
+        'price' => $order['price']
+    ];
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orders</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+   <meta charset="UTF-8">
+   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Orders</title>
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
+   <!-- Bootstrap CSS -->
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+   <!-- Font Awesome -->
+   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+   <!-- Custom CSS -->
+   <link href="css/style.min.css" rel="stylesheet">
+   <link href="css/product.css" rel="stylesheet">
+   <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>">
+   <link href="img/fav.ico" rel="icon">
+   <style>
+      .nav-item {
+         font-family: "Outfit", serif;
+         font-weight: 700;
+         padding: 0px 40px;
+      }
 
-    <style>
-        * {
-            font-family: "Outfit", serif;
-        }
-        body {
-            background-color: #f5f5dc;
-            display: flex;
-            height: 100vh;
-            overflow-x: hidden;
-        }
+      .table thead th {
+         background-color: #8b6b61;
+         color: #fff;
+      }
 
-        .content {
-            padding: 40px 20px 20px;
-            width: 100%;
-            background-color: #f5f5dc;
-        }
+      .table tbody tr:nth-child(odd) {
+         background-color: #fff;
+      }
 
-        .section {
-            background-color: #ffffff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
+      .table tbody tr:nth-child(even) {
+         background-color: #f9f6f4;
+      }
 
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #6b4f4f;
-            margin-bottom: 15px;
-        }
+      .status.processing {
+         color: #d2a679;
+      }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+      .status.completed {
+         color: green;
+      }
 
-        thead {
-            background-color: #8b6b61;
-            color: #fff;
-        }
+      .status.cancelled {
+         color: red;
+      }
 
-        tbody tr:nth-child(odd) {
-            background-color: #fff;
-        }
+      /* Center the content */
+      .center-content {
+         display: flex;
+         flex-direction: column;
+         align-items: center;
+         justify-content: center;
+         text-align: center;
+      }
 
-        tbody tr:nth-child(even) {
-            background-color: #f9f6f4;
-        }
-
-        tbody td,
-        thead th {
-            padding: 10px;
-            text-align: center;
-        }
-
-        .action-icons i {
-            cursor: pointer;
-            margin-right: 10px;
-            font-size: 1.2rem;
-            transition: color 0.3s ease, transform 0.3s ease;
-        }
-
-        .action-icons i:hover {
-            color: brown;
-            transform: scale(1.2);
-        }
-
-        .status.processing {
-            color: #d2a679;
-        }
-
-        .status.completed {
-            color: green;
-        }
-
-        .status.deleted {
-            color: red;
-        }
-    </style>
+      .center-table {
+         width: 80%;
+         margin: 0 auto;
+      }
+   </style>
 </head>
 
 <body>
-    <div class="content">
-        <div class="section">
-            <h2 class="section-title">Orders</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>User Name</th>
-                        <th>Product Names</th>
-                        <th>Total Quantity</th>
-                        <th>Total Amount</th>
-                        <th>Date & Time</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($orders as $order): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($order['order_id']); ?></td>
-                            <td><?php echo htmlspecialchars($order['user_name']); ?></td>
-                            <td><?php echo htmlspecialchars($order['product_names']); ?></td>
-                            <td><?php echo htmlspecialchars($order['total_quantity']); ?></td>
-                            <td><?php echo htmlspecialchars($order['total_amount']) . " EGP"; ?></td>
-                            <td><?php echo htmlspecialchars($order['date']); ?></td>
-                            <td class="status <?php echo htmlspecialchars($order['status']); ?>">
-                                <i class="bi bi-arrow-repeat"></i> 
-                                <?php echo ucfirst($order['status']); ?>
-                            </td>
-                            <td class="action-icons">
-                                <i class="bi bi-trash" title="Delete"></i>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+   <!-- Header Section -->
+   <?php require '../partials/usernav.php'; ?>
+
+   <!-- Banner Section -->
+   <header class="banner">
+      <div class="container">
+         <div class="content-banner text-center text-md-start">
+            <h1 class="text-white display-4 fw-medium mb-4">
+               Saw Your <br />Coffee Orders
+            </h1>
+         </div>
+      </div>
+   </header>
+
+   <!-- Orders Section -->
+   <section class="orders container mt-4 center-content">
+      <h1 class="title mb-4">Your Orders</h1>
+
+      <?php if (empty($grouped_orders)): ?>
+         <p class="empty">No orders placed yet!</p>
+      <?php else: ?>
+         <div class="table-responsive center-table">
+            <table class="table table-bordered table-hover">
+               <thead>
+                  <tr>
+                     <th>Order ID</th>
+                     <th>Placed On</th>
+                     <th>Status</th>
+                     <th>Total Amount</th>
+                     <th>Products</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  <?php foreach ($grouped_orders as $order): ?>
+                     <tr>
+                        <td><?= htmlspecialchars($order['order_id']); ?></td>
+                        <td><?= htmlspecialchars($order['order_date']); ?></td>
+                        <td class="status <?= htmlspecialchars($order['status']); ?>">
+                           <i class="bi bi-arrow-repeat"></i> 
+                           <?= ucfirst($order['status']); ?>
+                        </td>
+                        <td>$<?= number_format($order['total_amount'], 2); ?></td>
+                        <td>
+                           <ul class="list-unstyled">
+                              <?php foreach ($order['products'] as $product): ?>
+                                 <li>
+                                    <?= htmlspecialchars($product['product_name']); ?> -
+                                    Quantity: <?= htmlspecialchars($product['quantity']); ?> -
+                                    Price: $<?= number_format($product['price'], 2); ?>
+                                 </li>
+                              <?php endforeach; ?>
+                           </ul>
+                        </td>
+                     </tr>
+                  <?php endforeach; ?>
+               </tbody>
+            </table>
+         </div>
+      <?php endif; ?>
+   </section>
+
+   <!-- Footer Section -->
+   <?php require '../partials/footer.php'; ?>
+
+   <!-- Bootstrap JS -->
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+   <!-- Custom JS File Link -->
+   <script src="js/script.js"></script>
 </body>
+
 </html>
