@@ -213,7 +213,7 @@ require('../components/connect.php');
                             <tr>
                                 <td><?= htmlspecialchars($row['id']) ?></td>
                                 <input type="hidden" class="pid" value="<?= htmlspecialchars($row['id']) ?>">
-                                <td><img src="<?= htmlspecialchars($row['product_image']) ?>" width="50" alt="<?= htmlspecialchars($row['product_name']) ?>"></td>
+                                <td><img src="../admin view/productpictures/<?= htmlspecialchars($row['product_image']) ?>" width="50" alt="<?= htmlspecialchars($row['product_name']) ?>"></td>
                                 <td><?= htmlspecialchars($row['product_name']) ?></td>
                                 <td>
                                     <i class="fas fa-coffee"></i>&nbsp;&nbsp;<?= number_format($row['product_price'], 2); ?> EGP

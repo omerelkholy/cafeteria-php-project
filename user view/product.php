@@ -1,6 +1,4 @@
-<?php
-require('../partials/usernav.php');
-?>
+
 <?php
 require('../partials/usernav.php');
 require('../components/connect.php');
@@ -42,7 +40,8 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <!-- Banner Section -->
     <header class="banner">
         <div class="container">
-            <div class="content-banner text-center text-md-start">
+            
+            <!-- <div class="content-banner text-center text-md-start">
                 <p class="text-primary fs-6 fw-medium mb-3">Delicious Coffee</p>
                 <h1 class="text-white display-4 fw-medium mb-4">
                     100% Natural <br />Fresh Coffee
@@ -50,7 +49,7 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <a href="#" class="btn btn-primary text-uppercase px-5 py-3 rounded-pill">
                     Buy Now
                 </a>
-            </div>
+            </div> -->
         </div>
     </header>
 

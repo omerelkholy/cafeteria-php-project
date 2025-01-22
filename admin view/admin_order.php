@@ -1,108 +1,102 @@
+<?php require('../components/connect.php'); ?>
+
 <?php
-$host = 'localhost';
-$dbname = 'cafeteria';
-$username = 'root';
-$password = '';
-
-$conn = new mysqli($host, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
-
-// هجيب البينات اللى هتتعرض فى الصفحةمن هنا 
 $products = [];
-$sql = "SELECT id, name, price, category, picture FROM products";
-$result = $conn->query($sql);
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $products[] = $row;
-    }
-}
+$sql = "SELECT id, name, price, category, picture FROM products order by name asc";
+$statement = $connect->prepare($sql);
+$statement->execute();
+$products = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-// الداتا بتاع اليزرز من هنا
 $users = [];
 $sql = "SELECT id, name, room_no FROM users";
-$result = $conn->query($sql);
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $users[] = $row;
-    }
-}
+$statement = $connect->prepare($sql);
+$statement->execute();
+$users = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-// ارقام الاوض
-$rooms = [];
-$sql = "SELECT DISTINCT room_no FROM users WHERE room_no IS NOT NULL";
-$result = $conn->query($sql);
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $rooms[] = $row['room_no'];
-    }
-}
+$rooms = [200,201,202,203,204,205,206,207];
 
-// الكود اللي يهيتنفذ لما اضغط علي الزرار
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // بشيك علي البيانات المطلوبة من اليوزر
-    if (!isset($_POST['user']) || !isset($_POST['room']) || !isset($_POST['product_id']) || !isset($_POST['quantity'])) {
-        die("Error: Missing required data.");
-    }
-
-    // الداتا اللي جايه بحطها في فاريابلز
-    $userId = $_POST['user'];
-    $roomNo = $_POST['room'];
-    $productIds = $_POST['product_id'];
-    $quantities = $_POST['quantity'];
-
-    // التحقق من أن product_id و quantity عبارة عن مصفوفات
-    if (!is_array($productIds) || !is_array($quantities)) {
-        die("Error: Invalid data format.");
-    }
-
-    // بدخل الطلب في جدول الاوردرات
-    foreach ($productIds as $index => $productId) {
-        if (!isset($quantities[$index])) {
-            continue; // سكيب لو مفيش كمية مطابقة
+    try {
+        $connect->beginTransaction();
+        
+        $postData = json_decode(file_get_contents('php://input'), true);
+        if (!isset($postData['userId']) || !isset($postData['roomNo']) || !isset($postData['items']) || empty($postData['items'])) {
+            throw new Exception("Missing required data");
         }
 
-        $quantity = $quantities[$index];
-        $sql = "INSERT INTO orders (user_id, product_id, quantity, room_no) VALUES (?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
+        $userId = $postData['userId'];
+        $roomNo = $postData['roomNo']?$postData['roomNo']:null;
+        $items = $postData['items'];
 
-        if (!$stmt) {
-            die("Error preparing statement: " . $conn->error);
+        $totalAmount = 0;
+        foreach ($items as $item) {
+            $sql = "SELECT price FROM products WHERE id = ?";
+            $stmt = $connect->prepare($sql);
+            $stmt->execute([$item['productId']]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$product) {
+                throw new Exception("Invalid product ID: " . $item['productId']);
+            }
+            
+            $totalAmount += $product['price'] * $item['quantity'];
         }
 
-        $stmt->bind_param("iiis", $userId, $productId, $quantity, $roomNo);
+        $sql = "INSERT INTO orders (user_id, total_amount, room_no) VALUES (?, ?, ?)";
+        $stmt = $connect->prepare($sql);
+        $stmt->execute([$userId, $totalAmount, $roomNo]);
+        $orderId = $connect->lastInsertId();
 
-        if (!$stmt->execute()) {
-            die("Error executing statement: " . $stmt->error);
+        $sql = "INSERT INTO order_details (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)";
+        $stmt = $connect->prepare($sql);
+        
+        foreach ($items as $item) {
+            $productStmt = $connect->prepare("SELECT price FROM products WHERE id = ?");
+            $productStmt->execute([$item['productId']]);
+            $product = $productStmt->fetch(PDO::FETCH_ASSOC);
+            
+            $stmt->execute([
+                $orderId,
+                $item['productId'],
+                $item['quantity'],
+                $product['price']
+            ]);
         }
 
-        $stmt->close();
+        $connect->commit();
+        
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'message' => 'Order placed successfully']);
+        exit;
+        
+    } catch (Exception $e) {
+        $connect->rollBack();
+        
+        header('Content-Type: application/json');
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        exit;
     }
-
-    echo "Order submitted successfully!";
-    exit;
 }
-
-$conn->close();
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Order Page</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
     <style>
         body {
             margin-top: 20px;
             background: #f5f5dc;
-            font-family: 'Poppins', sans-serif;
+            font-family: "Outfit", serif;
             color: #4a4a4a;
         }
 
@@ -129,7 +123,7 @@ $conn->close();
         }
 
         .cart-item p {
-            margin: 0;
+            margin: 0px;
         }
 
         .total-price {
@@ -149,11 +143,10 @@ $conn->close();
 
         .btn-confirm:hover {
             background-color: #6e3610;
+            color: white;
         }
 
         .room-selection select {
-            width: 100%;
-            padding: 10px;
             border-radius: 5px;
             border: 1px solid #ccc;
             font-size: 16px;
@@ -304,82 +297,82 @@ $conn->close();
         }
     </style>
 </head>
-
 <body>
     <div class="navbar">
-        <h1>admin Order System</h1>
+        <h1>Admin Order System</h1>
     </div>
     <div class="container-fluid">
         <div class="row">
-            <!-- Cart -->
             <div class="col-md-3">
                 <div class="cart-container">
-                    <h2>your Cart</h2>
-                    <form id="orderForm" method="POST">
-                        <div id="cart-items">
-                        </div>
+                    <h2>Your Cart</h2>
+                    <form id="orderForm">
+                        <div id="cartItems"></div>
                         <div class="total-price">
-                            Total: EGP <span id="total-price">0</span>
+                            Total: EGP <span id="totalPrice">0</span>
                         </div>
                         <div class="form-group room-selection">
                             <label for="room">Room Number:</label>
                             <select class="form-control" name="room" id="room">
-                                <option value="">Select Room</option>
+                                <option disabled selected value="">Choose user room</option>
                                 <?php foreach ($rooms as $room): ?>
-                                    <option value="<?php echo $room; ?>">Room <?php echo $room; ?></option>
+                                    <option value="<?=$room ?>">
+                                        <?=$room ?>
+                                    </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <input type="hidden" name="user" id="user" value="">
                         <button type="submit" id="confirmButton" class="btn btn-confirm btn-block">Confirm Order</button>
                         <div id="confirmationMessage" class="confirmation-message">
-                            Our delivery is on the way.
+                            Order placed successfully!
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- المنيو-->
             <div class="col-md-9">
                 <div class="form-group">
-                    <label for="user">Select User:</label>
-                    <select class="form-control" name="user" id="user-select">
+                    <label for="userSelect">Select User:</label>
+                    <select class="form-control" id="userSelect">
+                        <option disabled selected value="">Select a user</option>
                         <?php foreach ($users as $user): ?>
-                            <option value="<?php echo $user['id']; ?>" data-room="<?php echo $user['room_no']; ?>">
-                                <?php echo $user['name']; ?>
+                            <option value="<?php echo htmlspecialchars($user['id']); ?>" 
+                                    data-room="<?php echo htmlspecialchars($user['room_no']); ?>">
+                                <?php echo htmlspecialchars($user['name']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
 
-                <div class="row">
+                <div class="row" id="productsList">
                     <?php foreach ($products as $product): ?>
                         <div class="col-md-6">
                             <div class="product-content product-wrap clearfix">
                                 <div class="row">
                                     <div class="col-md-5 col-sm-12 col-xs-12">
                                         <div class="product-image">
-                                            <img src="<?php echo $product['picture']; ?>" alt="<?php echo $product['name']; ?>" class="img-responsive">
+                                            <img src="../admin view/productpictures/<?php echo htmlspecialchars($product['picture']); ?>" 
+                                                 alt="<?php echo htmlspecialchars($product['name']); ?>" 
+                                                 class="img-responsive">
                                         </div>
                                     </div>
                                     <div class="col-md-7 col-sm-12 col-xs-12">
                                         <div class="product-deatil">
                                             <h5 class="name">
-                                                <a href="#"><?php echo $product['name']; ?></a>
+                                                <?php echo htmlspecialchars($product['name']); ?>
                                             </h5>
                                             <p class="price-container">
-                                                <span>EGP <?php echo $product['price']; ?></span>
+                                                <span>EGP <?php echo htmlspecialchars($product['price']); ?></span>
                                             </p>
                                         </div>
                                         <div class="product-info smart-form">
-                                            <div class="row">
-                                                <div class="col-md-6 col-sm-6 col-xs-6">
-                                                    <div class="quantity-control">
-                                                        <button class="btn-decrease" data-product-id="<?php echo $product['id']; ?>">-</button>
-                                                        <span class="quantity" data-product-id="<?php echo $product['id']; ?>">0</span>
-                                                        <button class="btn-increase" data-product-id="<?php echo $product['id']; ?>">+</button>
-                                                    </div>
-                                                </div>
+                                            <div class="quantity-control">
+                                                <button type="button" class="btn-decrease" 
+                                                        data-product-id="<?php echo htmlspecialchars($product['id']); ?>">-</button>
+                                                <span class="quantity" 
+                                                      data-product-id="<?php echo htmlspecialchars($product['id']); ?>">0</span>
+                                                <button type="button" class="btn-increase" 
+                                                        data-product-id="<?php echo htmlspecialchars($product['id']); ?>">+</button>
                                             </div>
                                         </div>
                                     </div>
@@ -392,130 +385,147 @@ $conn->close();
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
     <script>
-        let cart = [];
-
-        // الكمية + او -
-        $(document).on('click', '.btn-increase', function() {
-            const productId = $(this).data('product-id');
-            const product = cart.find(item => item.id === productId);
-
-            if (product) {
-                product.quantity += 1;
-            } else {
-                const productName = $(this).closest('.product-content').find('.name a').text();
-                const productPrice = parseFloat($(this).closest('.product-content').find('.price-container span').text().replace('EGP ', ''));
-                cart.push({
-                    id: productId,
-                    name: productName,
-                    price: productPrice,
-                    quantity: 1
+        const cart = {
+            items: [],
+            
+            addItem(productId, name, price) {
+                const existingItem = this.items.find(item => item.productId === productId);
+                if (existingItem) {
+                    existingItem.quantity++;
+                } else {
+                    this.items.push({ productId, name, price, quantity: 1 });
+                }
+                this.updateUI();
+            },
+            
+            removeItem(productId) {
+                const index = this.items.findIndex(item => item.productId === productId);
+                if (index > -1) {
+                    const item = this.items[index];
+                    if (item.quantity > 1) {
+                        item.quantity--;
+                    } else {
+                        this.items.splice(index, 1);
+                    }
+                }
+                this.updateUI();
+            },
+            
+            clearCart() {
+                this.items = [];
+                this.updateUI();
+            },
+            
+            updateUI() {
+                const cartItemsContainer = document.getElementById('cartItems');
+                cartItemsContainer.innerHTML = '';
+                
+                let totalPrice = 0;
+                
+                this.items.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    totalPrice += itemTotal;
+                    
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'cart-item';
+                    itemElement.innerHTML = `
+                        <p>${item.name} (${item.quantity}) - EGP ${itemTotal.toFixed(2)}</p>
+                        <span class="remove-item" data-product-id="${item.productId}">Remove</span>
+                    `;
+                    cartItemsContainer.appendChild(itemElement);
+                });
+                
+                document.getElementById('totalPrice').textContent = totalPrice.toFixed(2);
+                
+                this.items.forEach(item => {
+                    const quantityDisplay = document.querySelector(`.quantity[data-product-id="${item.productId}"]`);
+                    if (quantityDisplay) {
+                        quantityDisplay.textContent = item.quantity;
+                    }
+                });
+                
+                document.querySelectorAll('.quantity').forEach(el => {
+                    const productId = el.dataset.productId;
+                    if (!this.items.some(item => item.productId === productId)) {
+                        el.textContent = '0';
+                    }
                 });
             }
+        };
 
-            updateCartUI();
-            updateQuantityDisplay(productId);
-        });
-
-        $(document).on('click', '.btn-decrease', function() {
-            const productId = $(this).data('product-id');
-            const product = cart.find(item => item.id === productId);
-
-            if (product) {
-                if (product.quantity > 1) {
-                    product.quantity -= 1;
-                } else {
-                    cart = cart.filter(item => item.id !== productId);
+        document.addEventListener('DOMContentLoaded', () => {
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('btn-increase') || e.target.classList.contains('btn-decrease')) {
+                    const productId = e.target.dataset.productId;
+                    const productContainer = e.target.closest('.product-content');
+                    const name = productContainer.querySelector('.name').textContent.trim();
+                    const price = parseFloat(productContainer.querySelector('.price-container span').textContent.replace('EGP ', ''));
+                    
+                    if (e.target.classList.contains('btn-increase')) {
+                        cart.addItem(productId, name, price);
+                    } else {
+                        cart.removeItem(productId);
+                    }
                 }
-            }
-
-            updateCartUI();
-            updateQuantityDisplay(productId);
-        });
-
-        function updateCartUI() {
-            const cartItems = $('#cart-items');
-            cartItems.empty();
-
-            let totalPrice = 0;
-            cart.forEach((item, index) => {
-                const itemTotal = item.price * item.quantity;
-                totalPrice += itemTotal;
-
-                cartItems.append(`
-                    <div class="cart-item">
-                        <p>${item.name} (${item.quantity}) - EGP ${itemTotal}</p>
-                        <span class="remove-item" data-index="${index}">Remove</span>
-                        <input type="hidden" name="product_id[]" value="${item.id}">
-                        <input type="hidden" name="quantity[]" value="${item.quantity}">
-                    </div>
-                `);
+                
+                if (e.target.classList.contains('remove-item')) {
+                    const productId = e.target.dataset.productId;
+                    cart.removeItem(productId);
+                }
             });
 
-            $('#total-price').text(totalPrice.toFixed(2));
-        }
-
-        function updateQuantityDisplay(productId) {
-            const product = cart.find(item => item.id === productId);
-            const quantityDisplay = $(`.quantity[data-product-id="${productId}"]`);
-            quantityDisplay.text(product ? product.quantity : 0);
-        }
-
-        $(document).on('click', '.remove-item', function() {
-            const index = $(this).data('index');
-            cart.splice(index, 1);
-            updateCartUI();
-        });
-
-        document.getElementById('user-select').addEventListener('change', function() {
-            const selectedUser = this.options[this.selectedIndex];
-            const userId = selectedUser.value;
-            document.getElementById('user').value = userId;
-        });
-
-        $('#orderForm').on('submit', function(e) {
-            e.preventDefault();
-
-            // لو الكارت فاضي
-            if (cart.length === 0) {
-                alert("Your cart is empty. Please add products before confirming the order.");
-                return;
-            }
-
-            // هنبعت الداتا ب ajax
-            const formData = $(this).serializeArray();
-            formData.push({
-                name: 'product_id[]',
-                value: cart.map(item => item.id)
+            document.getElementById('orderForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const userId = document.getElementById('userSelect').value;
+                const roomNo = document.getElementById('room').value;
+                
+                
+                try {
+                    const response = await fetch('', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            userId,
+                            roomNo,
+                            items: cart.items
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        const confirmationMessage = document.getElementById('confirmationMessage');
+                        confirmationMessage.style.display = 'block';
+                        confirmationMessage.textContent = data.message;
+                        
+                        // Reset form and cart
+                        cart.clearCart();
+                        document.getElementById('orderForm').reset();
+                        document.getElementById('userSelect').value = '';
+                        
+                        setTimeout(() => {
+                            confirmationMessage.style.display = 'none';
+                        }, 3000);
+                    } else {
+                        throw new Error(data.message);
+                    }
+                } catch (error) {
+                    alert('Error submitting order: ' + error.message);
+                }
             });
-            formData.push({
-                name: 'quantity[]',
-                value: cart.map(item => item.quantity)
-            });
 
-            $.ajax({
-                url: '',
-                type: 'POST',
-                data: $.param(formData),
-                success: function(response) {
-                    $('#confirmationMessage').show();
-                    setTimeout(() => {
-                        $('#confirmationMessage').hide();
-                        cart = [];
-                        updateCartUI();
-                        $('#orderForm')[0].reset();
-                    }, 3000);
-                },
-                error: function(xhr, status, error) {
-                    alert('Error submitting order. Please try again.');
+            // User selection
+            document.getElementById('userSelect').addEventListener('change', function() {
+                const roomNo = this.options[this.selectedIndex].dataset.room;
+                if (roomNo) {
+                    document.getElementById('room').value = roomNo;
                 }
             });
         });
     </script>
 </body>
-
 </html>
