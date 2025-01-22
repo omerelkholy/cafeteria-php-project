@@ -22,16 +22,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productName = $_POST['product_name'];
     $price = $_POST['price'];
     $category = $_POST['category'];
-    // $picture = $_FILES['picture'];
+    $picture = $_FILES['picture'];
 
    
      // Handle image upload
      $picture = $product['picture']; // Keep the old picture if not uploaded
-     if (isset($_FILES['picture']) && $_FILES['picture']['error'] === 0) {
-         $imageName = $_FILES['picture']['name'];
-         $imageTmpName = $_FILES['picture']['tmp_name'];
+     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
+         $imageName = $_FILES['image']['name'];
+         $imageTmpName = $_FILES['image']['tmp_name'];
          $imagePath = 'productpictures/' . $imageName; 
          move_uploaded_file($imageTmpName, $imagePath);
+         $picture = $imagePath; 
      }
 
   
@@ -41,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'product_name' => $productName,
         'price' => $price,
         'category' => $category,
-        'picture' => $imageName,
+        'picture' => $picture,
         'id' => $productId
     ];
 

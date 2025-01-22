@@ -106,6 +106,9 @@ foreach ($orderDetails as $detail) {
                         case "processing":
                             $statusClass = "status-processing";
                             break;
+                        case "shipped":
+                            $statusClass = "status-shipped";
+                            break;
                         case "delivered":
                             $statusClass = "status-delivered";
                             break;

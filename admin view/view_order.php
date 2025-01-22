@@ -2,37 +2,30 @@
 require('../components/connect.php');
 session_start();
 
-
 $query = "
     SELECT 
         orders.id,
         users.name AS user_name,
-        products.name AS product_name,
         orders.status,
-        orders.quantity,
-        orders.date,
-        orders.price
+        orders.order_date,
+        orders.room_no
     FROM orders
-    JOIN users ON orders.user_id = users.id
-    JOIN products ON orders.product_id = products.id
-    where status in( 'processing' ,'out for delivery')
-    ORDER BY orders.date DESC;
+    INNER JOIN users ON orders.user_id = users.id
+    WHERE orders.status IN ('processing', 'delivered')
+    ORDER BY orders.order_date DESC;
 ";
 
 $statement = $connect->prepare($query);
 $statement->execute();
 $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-
 if (isset($_POST['delete_order_id'])) {
-    
     $orderId = $_POST['delete_order_id'];
 
     $deleteQuery = "DELETE FROM orders WHERE id = :id";
     $deleteStmt = $connect->prepare($deleteQuery);
     $deleteStmt->bindParam(':id', $orderId, PDO::PARAM_INT);
-    
-    
+
     if ($deleteStmt->execute()) {
         echo 'success'; 
     } else {
@@ -55,16 +48,17 @@ if (isset($_POST['delete_order_id'])) {
     <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Merienda:wght@300..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
     <style>
         * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: "Outfit", serif;
         }
+
         body {
             background-color: #f5f5dc;
             display: flex;
             height: 100vh;
             overflow-x: hidden;
-        }
-        .navbar-custom {
-            background-color: #8b6b61;
         }
 
         .content {
@@ -72,14 +66,6 @@ if (isset($_POST['delete_order_id'])) {
             width: 100%;
             background-color: #f5f5dc;
             margin-left: 250px;
-        }
-
-        .section {
-            background-color: #ffffff;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .section-title {
@@ -154,6 +140,19 @@ if (isset($_POST['delete_order_id'])) {
             color: brown;
             transform: scale(1.2);
         }
+
+        .btn-primary {
+            background-color: #6b4f4f;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #a38181;
+        }
+
+        .btn {
+            margin-top: 80px;
+        }
     </style>
 </head>
 <body>
@@ -165,35 +164,36 @@ if (isset($_POST['delete_order_id'])) {
             <table>
                 <thead>
                     <tr>
+                        <th>ID</th>
                         <th>User Name</th>
-                        <th>Product Name</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Date & Time</th>
                         <th>Status</th>
+                        <th>order_date</th>
+                        <th>Room</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($orders as $order): ?>
                         <tr data-order-id="<?php echo htmlspecialchars($order['id']); ?>">
+                            <td><?php echo htmlspecialchars($order['id']); ?></td>
                             <td><?php echo htmlspecialchars($order['user_name']); ?></td>
-                            <td><?php echo htmlspecialchars($order['product_name']); ?></td>
-                            <td><?php echo htmlspecialchars($order['quantity']); ?></td>
-                            <td><?php echo htmlspecialchars($order['price']) . " EGP"; ?></td>
-                            <td><?php echo htmlspecialchars($order['date']); ?></td>
                             <td class="status <?php echo htmlspecialchars($order['status']); ?>">
-                                <?php 
+                                <?php
+                                    // عرض الأيقونات بناءً على الحالة
                                     if ($order['status'] == 'processing') {
                                         echo '<i class="bi bi-arrow-repeat"></i> Processing';
-                                    } elseif ($order['status'] == 'out for delivery') {
-                                        echo '<i class="bi bi-truck"></i> Out of Delivery';
+                                    } elseif ($order['status'] == 'delivered') {
+                                        echo '<i class="bi bi-truck"></i> delivered';
                                     } elseif ($order['status'] == 'done') {
                                         echo '<i class="bi bi-check-circle"></i> Done';
                                     }
                                 ?>
                             </td>
+                            <td><?php echo htmlspecialchars($order['order_date']); ?></td>
+                            <td><?php echo htmlspecialchars($order['room_no'] ?? ''); ?></td>
+
                             <td class="action-icons">
+                                <a href="view_users_order.php?id=<?php echo htmlspecialchars($order['id']); ?>" class="edit-icon bi bi-eye" title="View"></a>
                                 <a href="edit_order.php?id=<?php echo htmlspecialchars($order['id']); ?>" class="edit-icon bi bi-pencil-square" title="Edit"></a>
                                 <a href="javascript:void(0);" class="edit-icon bi bi-trash" title="Delete" onclick="deleteOrder(<?php echo htmlspecialchars($order['id']); ?>)"></a>
                             </td>
@@ -204,27 +204,23 @@ if (isset($_POST['delete_order_id'])) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function deleteOrder(orderId) {
-            if (confirm('Are you sure you want to delete this order?')) {
-              
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', '', true);  
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        
-                        const row = document.querySelector(`tr[data-order-id='${orderId}']`);
-                        if (row) {
-                            row.remove();
-                        }
-                    } else {
-                        alert('Error deleting order!');
-                    }
-                };
-                xhr.send('delete_order_id=' + orderId); 
-            }
+            const formData = new FormData();
+            formData.append('delete_order_id', orderId);
+
+            fetch('', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                if (data === 'success') {
+                    location.reload();
+                } else {
+                    alert('An error occurred while deleting the order.');
+                }
+            });
         }
     </script>
 </body>

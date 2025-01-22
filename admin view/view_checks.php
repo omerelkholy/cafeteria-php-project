@@ -7,12 +7,12 @@ if (isset($_POST['dateFrom']) || isset($_POST['dateTo']) || isset($_POST['userId
 
     if (isset($_POST['dateFrom']) && !empty($_POST['dateFrom'])) {
         $dateFrom = $_POST['dateFrom'];
-        $whereClauses[] = "orders.date >= :dateFrom";
+        $whereClauses[] = "orders.order_date >= :dateFrom";
     }
 
     if (isset($_POST['dateTo']) && !empty($_POST['dateTo'])) {
         $dateTo = $_POST['dateTo'];
-        $whereClauses[] = "orders.date <= :dateTo";
+        $whereClauses[] = "orders.order_date <= :dateTo";
     }
 
     if (isset($_POST['userId']) && !empty($_POST['userId'])) {
@@ -24,25 +24,21 @@ if (isset($_POST['dateFrom']) || isset($_POST['dateTo']) || isset($_POST['userId
         SELECT 
             orders.id,
             users.name AS user_name,
-            products.name AS product_name,
             orders.status,
-            orders.quantity,
-            orders.date,
-            orders.price
+            orders.order_date,
+            orders.room_no
         FROM orders
         JOIN users ON orders.user_id = users.id
-        JOIN products ON orders.product_id = products.id
     ";
 
     if (count($whereClauses) > 0) {
         $query .= " WHERE " . implode(" AND ", $whereClauses);
     }
 
-    $query .= " ORDER BY orders.date DESC";
+    $query .= " ORDER BY orders.order_date DESC";
 
     $statement = $connect->prepare($query);
 
-   
     if (isset($dateFrom)) {
         $statement->bindParam(':dateFrom', $dateFrom);
     }
@@ -56,27 +52,22 @@ if (isset($_POST['dateFrom']) || isset($_POST['dateTo']) || isset($_POST['userId
     $statement->execute();
     $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
 } else {
-   
     $query = "
         SELECT 
             orders.id,
             users.name AS user_name,
-            products.name AS product_name,
             orders.status,
-            orders.quantity,
-            orders.date,
-            orders.price
+            orders.order_date,
+            orders.room_no
         FROM orders
         JOIN users ON orders.user_id = users.id
-        JOIN products ON orders.product_id = products.id
-        ORDER BY orders.date DESC;
+        ORDER BY orders.order_date DESC;
     ";
 
     $statement = $connect->prepare($query);
     $statement->execute();
     $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
 }
-
 
 $userQuery = "
     SELECT DISTINCT users.id, users.name
@@ -115,7 +106,7 @@ if (isset($_POST['delete_order_id'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Merienda:wght@300..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Merienda:wght@300..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -228,17 +219,17 @@ if (isset($_POST['delete_order_id'])) {
         }
        
         .btn-primary {
-      background-color: #6b4f4f;
-      border: none;
-    }
+            background-color: #6b4f4f;
+            border: none;
+        }
 
-    .btn-primary:hover {
-      background-color: #a38181;
-    }
+        .btn-primary:hover {
+            background-color: #a38181;
+        }
 
-    .btn{
-        margin-top: 80px
-    }
+        .btn{
+            margin-top: 80px
+        }
     </style>
 </head>
 
@@ -277,11 +268,9 @@ if (isset($_POST['delete_order_id'])) {
                 <thead>
                     <tr>
                         <th>User Name</th>
-                        <th>Product Name</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>Date & Time</th>
                         <th>Status</th>
+                        <th>Room No</th>
+                        <th>Order Date</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -289,23 +278,21 @@ if (isset($_POST['delete_order_id'])) {
                     <?php foreach ($orders as $order): ?>
                         <tr data-order-id="<?php echo htmlspecialchars($order['id']); ?>">
                             <td><?php echo htmlspecialchars($order['user_name']); ?></td>
-                            <td><?php echo htmlspecialchars($order['product_name']); ?></td>
-                            <td><?php echo htmlspecialchars($order['quantity']); ?></td>
-                            <td><?php echo htmlspecialchars($order['price']) . " EGP"; ?></td>
-                            <td><?php echo htmlspecialchars($order['date']); ?></td>
                             <td class="status <?php echo htmlspecialchars($order['status']); ?>">
                                 <?php 
                                     if ($order['status'] == 'processing') {
                                         echo '<i class="bi bi-arrow-repeat"></i> Processing';
-                                    } elseif ($order['status'] == 'out for delivery') {
-                                        echo '<i class="bi bi-truck"></i> Out for Delivery';
-                                    } elseif ($order['status'] == 'done') {
-                                        echo '<i class="bi bi-check-circle"></i> Done';
+                                    } elseif ($order['status'] == 'delivered') {
+                                        echo '<i class="bi bi-truck"></i> delivery';
+                                    } elseif ($order['status'] == 'shipped') {
+                                        echo '<i class="bi bi-check-circle"></i> shipped';
                                     }
                                 ?>
                             </td>
+                            <td><?php echo htmlspecialchars($order['room_no'] ?? ''); ?></td>
+                            <td><?php echo htmlspecialchars($order['order_date']); ?></td>
                             <td class="action-icons">
-                                <a href="view_users_order.php?id=<?php echo htmlspecialchars($order['id']); ?>" class="edit-icon bi bi-eye" title="View"></a>
+                                <a href="view_checks_details.php?id=<?php echo htmlspecialchars($order['id']); ?>" class="edit-icon bi bi-eye" title="View"></a>
                                 <a href="javascript:void(0);" class="edit-icon bi bi-trash" title="Delete" onclick="deleteOrder(<?php echo htmlspecialchars($order['id']); ?>)"></a>
                             </td>
                         </tr>
@@ -333,7 +320,7 @@ if (isset($_POST['delete_order_id'])) {
             }
         });
     }
-</script>
+    </script>
 
 </body>
 

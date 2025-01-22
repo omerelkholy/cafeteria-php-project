@@ -1,181 +1,218 @@
 <?php
 require('../components/connect.php');
+session_start();
 
-if (isset($_GET['id'])) {
-    $orderId = $_GET['id'];
+// جلب الطلب بناءً على ID الطلب
+$orderId = $_GET['id'];
 
-    $query = "
-        SELECT 
-            orders.id,
-            users.name AS user_name,
-            products.name AS product_name,
-            orders.status,
-            orders.quantity,
-            orders.price,
-            orders.product_id
-        FROM orders
-        JOIN users ON orders.user_id = users.id
-        JOIN products ON orders.product_id = products.id
-        WHERE orders.id = :id;
-    ";
+// استعلام لجلب بيانات الطلب والمنتجات المرتبطة به
+$query = "
+    SELECT 
+        od.id AS order_detail_id,
+        p.id AS product_id,
+        p.name AS product_name,
+        od.quantity,
+        od.price
+    FROM 
+        order_details od
+    INNER JOIN products p ON od.product_id = p.id
+    WHERE 
+        od.order_id = :order_id;
+";
 
-    $statement = $connect->prepare($query);
-    $statement->execute(['id' => $orderId]);
-    $order = $statement->fetch(PDO::FETCH_ASSOC);
+$statement = $connect->prepare($query);
+$statement->bindParam(':order_id', $orderId, PDO::PARAM_INT);
+$statement->execute();
+$orderDetails = $statement->fetchAll(PDO::FETCH_ASSOC);
 
-    if (!$order) {
-        die("Order not found");
+// استعلام لجلب اسم المستخدم
+$userQuery = "SELECT name FROM users WHERE id = (SELECT user_id FROM orders WHERE id = :order_id)";
+$userStmt = $connect->prepare($userQuery);
+$userStmt->bindParam(':order_id', $orderId, PDO::PARAM_INT);
+$userStmt->execute();
+$user = $userStmt->fetch(PDO::FETCH_ASSOC);
+
+// استعلام لجلب قائمة جميع المنتجات
+$productQuery = "SELECT id, name, price FROM products";
+$productStmt = $connect->prepare($productQuery);
+$productStmt->execute();
+$products = $productStmt->fetchAll(PDO::FETCH_ASSOC);
+
+// إضافة منتج جديد
+if (isset($_POST['add_product'])) {
+    $productId = $_POST['product_id'];
+    $quantity = $_POST['quantity'];
+    $productPrice = null;
+
+    foreach ($products as $product) {
+        if ($product['id'] == $productId) {
+            $productPrice = $product['price'];
+            break;
+        }
     }
 
-    $productQuery = "SELECT id, name FROM products";
-    $productStatement = $connect->prepare($productQuery);
-    $productStatement->execute();
-    $products = $productStatement->fetchAll(PDO::FETCH_ASSOC);
-} else {
-    die("Invalid Request");
+    if ($productPrice !== null) {
+        $insertQuery = "
+            INSERT INTO order_details (order_id, product_id, quantity, price)
+            VALUES (:order_id, :product_id, :quantity, :price)
+        ";
+        $insertStmt = $connect->prepare($insertQuery);
+        $insertStmt->bindParam(':order_id', $orderId, PDO::PARAM_INT);
+        $insertStmt->bindParam(':product_id', $productId, PDO::PARAM_INT);
+        $insertStmt->bindParam(':quantity', $quantity, PDO::PARAM_INT);
+        $insertStmt->bindParam(':price', $productPrice, PDO::PARAM_STR);
+        $insertStmt->execute();
+        header("Location: edit_order.php?id=$orderId");
+        exit;
+    }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// تعديل كمية منتج
+if (isset($_POST['update_quantity'])) {
+    $orderDetailId = $_POST['order_detail_id'];
     $quantity = $_POST['quantity'];
-    $price = $_POST['price'];
-    $status = $_POST['status'];
-    $productId = $_POST['product_id'];
-
-    $updateQuery = "UPDATE orders SET quantity = :quantity, price = :price, status = :status, product_id = :product_id WHERE id = :id";
+    $updateQuery = "UPDATE order_details SET quantity = :quantity WHERE id = :id";
     $updateStmt = $connect->prepare($updateQuery);
-    $params = [
-        'quantity' => $quantity,
-        'price' => $price,
-        'status' => $status,
-        'product_id' => $productId,
-        'id' => $orderId
-    ];
+    $updateStmt->bindParam(':quantity', $quantity, PDO::PARAM_INT);
+    $updateStmt->bindParam(':id', $orderDetailId, PDO::PARAM_INT);
+    $updateStmt->execute();
+    header("Location: edit_order.php?id=$orderId");
+    exit;
+}
 
-    $updateStmt->execute($params);
-
-    header("Location: view_order.php");
+// حذف منتج من الطلب
+if (isset($_POST['delete_product'])) {
+    $orderDetailId = $_POST['order_detail_id'];
+    $deleteQuery = "DELETE FROM order_details WHERE id = :id";
+    $deleteStmt = $connect->prepare($deleteQuery);
+    $deleteStmt->bindParam(':id', $orderDetailId, PDO::PARAM_INT);
+    $deleteStmt->execute();
+    header("Location: edit_order.php?id=$orderId");
     exit;
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Order</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- Font Awesome for icons -->
     <style>
         body {
-            background-color: #f5f5dc;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            padding-top: 20px;
+            background-color: #f4f1e1;
+            color: #5a3e36;
         }
-
-        .content {
-            width: 100%;
-            max-width: 800px;
-            background-color: #ffffff;
+        .container {
+            background-color: #fff5e6;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-
-        .section-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #6b4f4f;
-            margin-bottom: 15px;
+        h2, h4 {
+            color: #3e2723;
         }
-
-        .form-label {
-            color: #6b4f4f;
+        .table th, .table td {
+            text-align: center;
         }
-
-        .form-control,
-        .form-select {
-            border-radius: 50px;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            border-color: #ccc;
-            font-size: 1rem;
+        .btn-custom {
+            background-color: #6f4f30;
+            color: #fff;
         }
-
-        .form-control:hover,
-        .form-select:hover {
-            border-color: #8b6b61;
-            box-shadow: 0 0 5px rgba(139, 107, 97, 0.5);
+        .btn-custom:hover {
+            background-color: #8c6e4e;
         }
-
-        .form-control:focus,
-        .form-select:focus {
-            box-shadow: 0 0 5px rgba(139, 107, 97, 0.5);
+        .btn-icon {
+            background-color: #d2b4a3;
+            color: #fff;
+            font-size: 18px;
         }
-
-        .btn-primary {
-            background-color: #6b4f4f;
-            border: none;
-        }
-
-        .btn-primary:hover {
-            background-color: #a38181;
-        }
-
-        .btn {
-            margin-top: 20px;
+        .btn-icon:hover {
+            background-color: #c79e83;
         }
     </style>
 </head>
-
 <body>
+<div class="container mt-5">
+    <h2>Order #<?php echo htmlspecialchars($orderId); ?> - <small>by <?php echo htmlspecialchars($user['name']); ?></small></h2>
+    <hr>
 
-    <div class="content">
-        <h2 class="section-title">Edit Order</h2>
-        <form method="POST">
-            <div class="mb-3">
-                <label for="user_name" class="form-label">User Name</label>
-                <input type="text" class="form-control" id="user_name" value="<?= htmlspecialchars($order['user_name'] ?? '') ?>" readonly>
-            </div>
+    <!-- قائمة المنتجات المرتبطة بالطلب -->
+    <h4>Order Details</h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $totalPrice = 0;
+            foreach ($orderDetails as $detail): 
+                $totalPrice += $detail['quantity'] * $detail['price'];
+            ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($detail['product_name']); ?></td>
+                    <td>
+                        <form method="POST" style="display: inline;">
+                            <input type="number" name="quantity" value="<?php echo htmlspecialchars($detail['quantity']); ?>" min="1" required>
+                            <input type="hidden" name="order_detail_id" value="<?php echo htmlspecialchars($detail['order_detail_id']); ?>">
+                            <button type="submit" name="update_quantity" class="btn btn-sm btn-icon"><i class="fas fa-sync-alt"></i> Update</button>
+                        </form>
+                    </td>
+                    <td><?php echo htmlspecialchars($detail['quantity'] * $detail['price']); ?></td>
+                    <td>
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="order_detail_id" value="<?php echo htmlspecialchars($detail['order_detail_id']); ?>">
+                            <button type="submit" name="delete_product" class="btn btn-sm btn-icon"><i class="fas fa-trash-alt"></i> Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
 
-            <div class="mb-3">
-                <label for="product_name" class="form-label">Product Name</label>
-                <select class="form-select" id="product_id" name="product_id" required>
-                    <?php foreach ($products as $product): ?>
-                        <option value="<?= $product['id'] ?>" <?= $product['id'] == $order['product_id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($product['name']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+    <!-- إضافة منتج جديد -->
+    <h4>Add Product to Order</h4>
+    <form method="POST" class="row g-3">
+        <div class="col-md-6">
+            <label for="product_id" class="form-label">Select Product</label>
+            <select name="product_id" id="product_id" class="form-select" required>
+                <option value="">Select a Product</option>
+                <?php foreach ($products as $product): ?>
+                    <option value="<?php echo htmlspecialchars($product['id']); ?>">
+                        <?php echo htmlspecialchars($product['name']) . " - $" . htmlspecialchars($product['price']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="quantity" class="form-label">Quantity</label>
+            <input type="number" name="quantity" id="quantity" class="form-control" min="1" required>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">&nbsp;</label>
+            <button type="submit" name="add_product" class="btn btn-custom w-100"><i class="fas fa-plus-circle"></i> Add</button>
+        </div>
+    </form>
 
-            <div class="mb-3">
-                <label for="quantity" class="form-label">Quantity</label>
-                <input type="number" class="form-control" id="quantity" name="quantity" value="<?= htmlspecialchars($order['quantity'] ?? '') ?>" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="price" class="form-label">Price</label>
-                <input type="text" class="form-control" id="price" name="price" value="<?= htmlspecialchars($order['price'] ?? '') ?>" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="status" class="form-label">Status</label>
-                <select class="form-select" id="status" name="status" required>
-                    <option value="processing" <?= $order['status'] == 'processing' ? 'selected' : '' ?>>Processing</option>
-                    <option value="out for delivery" <?= $order['status'] == 'out for delivery' ? 'selected' : '' ?>>Out for Delivery</option>
-                    <option value="done" <?= $order['status'] == 'done' ? 'selected' : '' ?>>Done</option>
-                </select>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a href="view_order.php" class="btn btn-secondary">Cancel</a>
-        </form>
+    <!-- عرض الإجمالي -->
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <h4>Total Price: $<?php echo number_format($totalPrice, 2); ?></h4>
+        </div>
     </div>
-
+    <div class="mt-4">
+        <a href="view_order.php" class="btn btn-custom">
+            <i class="fas fa-arrow-left"></i> Back to View Orders
+        </a>
+    </div>
+</div>
 </body>
-
 </html>
