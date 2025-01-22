@@ -98,7 +98,7 @@ $products = $statement->fetchAll(PDO::FETCH_ASSOC);
       background-color: #f9f6f4;
     }
 
-    img{
+    .myimg{
       border-radius: 50%;
       width: 60px !important;
       height: 60px !important;
@@ -132,7 +132,7 @@ $products = $statement->fetchAll(PDO::FETCH_ASSOC);
           <tr>
             <td><?= $product['name'] ?></td>
             <td><?= $product['price']." EGP" ?></td>
-            <td><img src="productpictures/<?= $product['picture'] ?>" alt="product Image" style="width: 40px; height: 40px;"></td>
+            <td><img class="myimg" src="productpictures/<?= $product['picture'] ?>" alt="product Image" style="width: 40px; height: 40px;"></td>
             <td><?= $product['category'] ?></td>
             <td class="action-icons">
             <a href="edit_product.php?id=<?= $product['id'] ?>"><i class=" edit-icon bi bi-pencil-square" title="Edit"></i></a>

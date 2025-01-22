@@ -1,10 +1,20 @@
 <?php
 
+// $user = "root";
+// $password = "";
+// $server = 'localhost';
+// $db = 'cafeteria';
+// $connect = new PDO("mysql:host=$server;dbname=$db", $user, $password);
+
+
 $user = "root";
 $password = "";
 $server = 'localhost';
-$db = 'cafeteria';
+$db = 'updated_cafeteria';
 $connect = new PDO("mysql:host=$server;dbname=$db", $user, $password);
+
+
+
 
 // if ($connect) {
 //     echo "Connection successful";

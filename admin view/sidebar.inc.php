@@ -1,3 +1,18 @@
+<?php
+$current_dir = dirname(__FILE__);
+$project_root = dirname($current_dir);
+require_once $project_root . '/components/session.php';
+
+
+if (!isset($_SESSION['user_id'])) {
+    header('location:../login.php');
+    exit();
+}
+
+$user_name = $_SESSION['user_name'];
+$user_pic = $_SESSION['user_pic'];
+
+?>
 
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -46,21 +61,38 @@
         margin-top: 20px;
     }
 
-    .btn1{
-        margin-top: 80px
+    .btn1 {
+        margin-top: 50px
+    }
+
+    .admin_pic{
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+    }
+
+
+
+    p{
+        color: white;
+        text-align: center;
+        padding: 0px 20px;
+        font-size: 20px;
     }
 </style>
 
 
 <!-- Sidebar -->
 <div class="sidebar">
+    <p> <?= $user_name; ?>
+    <img class="admin_pic" src="../userpictures/<?= $user_pic; ?>" alt=""></p>
     <a href="../admin view/dashboard.php">Dashboard</a>
     <a href="../admin view/view_user.php">All Users</a>
     <a href="../admin view/view_checks.php">View Checks</a>
     <a href="../admin view/view_order.php">View Orders</a>
     <a href="../admin view/view_product.php">View Products</a>
     <a href="../admin view/admin_order.php">Order for User</a>
-    <a href="../login.php" class="btn1">
+    <a href="../logout.php" class="btn1">
         <i class="fas fa-sign-out-alt me-2"></i>Logout
     </a>
 </div>

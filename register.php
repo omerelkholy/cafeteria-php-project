@@ -1,7 +1,8 @@
 <?php
 
 require('components/connect.php');
-session_start();
+require('components/session.php');
+
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
@@ -68,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 
 <?php
-require('admin view/sidebar.inc.php');
+require_once __DIR__ . '/admin view/sidebar.inc.php';
 ?>
 
 

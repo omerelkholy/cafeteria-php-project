@@ -97,7 +97,7 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
     tbody tr:nth-child(even) {
       background-color: #f9f6f4;
     }
-    img{
+    .myimg{
       border-radius: 50%;
       width: 60px !important;
       height: 60px !important;
@@ -145,7 +145,7 @@ $users = $statement->fetchAll(PDO::FETCH_ASSOC);
           <tr>
             <td><?= $user['name'] ?></td>
             <td><?= $user['room_no'] ?></td>
-            <td><img src="../userpictures/<?= $user['picture'] ?>" alt="User Image" style="width: 40px; height: 40px;"></td>
+            <td><img class="myimg" src="../userpictures/<?= $user['picture'] ?>" alt="User Image" style="width: 40px; height: 40px;"></td>
             <td><?= $user['user_type'] ?></td>
             <td class="action-icons">
   <a href="edit_user.php?id=<?= $user['id'] ?>" class="edit-icon bi bi-pencil-square" title="Edit"></a>

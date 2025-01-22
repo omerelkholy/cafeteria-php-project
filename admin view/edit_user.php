@@ -29,7 +29,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $imageTmpName = $_FILES['image']['tmp_name'];
         $imagePath = '../userpictures/' . $imageName;
         move_uploaded_file($imageTmpName, $imagePath);
-        $picture = $imagePath;
     }
 
 
@@ -44,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'name' => $name,
         'email' => $email,
         'user_type' => $user_type,
-        'picture' => $picture,
+        'picture' => $imageName,
         'id' => $userId
     ];
     if ($user_type == 'user') {

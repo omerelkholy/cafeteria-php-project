@@ -9,6 +9,8 @@ if(!isset($_SESSION['user_id'])){
 
 
 $user_id=$_SESSION['user_id'];
+$user_name= $_SESSION['user_name'];
+$user_pic= $_SESSION['user_pic'];
 ?>
 
 
@@ -78,7 +80,27 @@ $user_id=$_SESSION['user_id'];
             color: white !important;
             border-color: white !important;
         }
+        .user_picture{
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+            }
+        .user_name a{
+                text-decoration: none;
+                color: white;
+                font-size: 18px;
+                padding: 20px;
+        }
 
+        .user_name a:hover{
+                color: white;
+                text-decoration: none;
+        }
+
+
+        .user_name{
+            padding: 7px 0px;
+        }
         @media (max-width: 991.98px) {
             .navbar-nav {
                 text-align: center;
@@ -120,7 +142,14 @@ $user_id=$_SESSION['user_id'];
                     <li class="nav-item">
                         <a class="nav-link <?= $pageName ==  'user view/product.php' ? 'active':'';?>" href="/user view/product.php">Menu</a>
                     </li>
-
+                   <li class="user_name">
+                   <a href="/user view/order.php">
+                        <?=  $user_name ?>
+                        </a>
+                    </li>
+                    <li>
+                       <img class="user_picture" src="../userpictures/<?=  $user_pic ?>" alt=""> 
+                    </li>
                 </ul>
 
                 <a href="../Logout.php" class="btn btn-outline-coffee ms-lg-auto">
