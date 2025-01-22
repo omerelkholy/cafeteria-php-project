@@ -1,23 +1,20 @@
 <?php
-
 require('../components/connect.php');
 
-// Corrected SQL query
+// استعلام لجلب الطلبات مع أسماء المستخدمين والمنتجات
 $query = "
     SELECT 
-        orders.id AS order_id,
+        orders.id,
         users.name AS user_name,
-        orders.total_amount,
+        products.name AS product_name,
         orders.status,
-        orders.order_date AS date,
-        GROUP_CONCAT(products.name SEPARATOR ', ') AS product_names,
-        SUM(order_details.quantity) AS total_quantity
+        orders.quantity,
+        orders.date,
+        orders.price
     FROM orders
     JOIN users ON orders.user_id = users.id
-    JOIN order_details ON orders.id = order_details.order_id
-    JOIN products ON order_details.product_id = products.id
-    GROUP BY orders.id
-    ORDER BY orders.order_date DESC;
+    JOIN products ON orders.product_id = products.id
+    ORDER BY orders.date DESC;
 ";
 
 $statement = $connect->prepare($query);
@@ -34,7 +31,6 @@ $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
     <title>Orders</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-
     <style>
         * {
             font-family: "Outfit", serif;
@@ -126,8 +122,8 @@ $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
                     <tr>
                         <th>ID</th>
                         <th>User Name</th>
-                        <th>Product Names</th>
-                        <th>Total Quantity</th>
+                        <th>Product Name</th>
+                        <th>Quantity</th>
                         <th>Total Amount</th>
                         <th>Date & Time</th>
                         <th>Status</th>
@@ -137,11 +133,11 @@ $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
                 <tbody>
                     <?php foreach ($orders as $order): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($order['order_id']); ?></td>
+                            <td><?php echo htmlspecialchars($order['id']); ?></td>
                             <td><?php echo htmlspecialchars($order['user_name']); ?></td>
-                            <td><?php echo htmlspecialchars($order['product_names']); ?></td>
-                            <td><?php echo htmlspecialchars($order['total_quantity']); ?></td>
-                            <td><?php echo htmlspecialchars($order['total_amount']) . " EGP"; ?></td>
+                            <td><?php echo htmlspecialchars($order['product_name']); ?></td>
+                            <td><?php echo htmlspecialchars($order['quantity']); ?></td>
+                            <td><?php echo htmlspecialchars($order['price'] * $order['quantity']) . " EGP"; ?></td>
                             <td><?php echo htmlspecialchars($order['date']); ?></td>
                             <td class="status <?php echo htmlspecialchars($order['status']); ?>">
                                 <i class="bi bi-arrow-repeat"></i> 
@@ -158,5 +154,5 @@ $orders = $statement->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    </body>
+    </html>

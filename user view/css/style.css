@@ -1,4 +1,9 @@
 /* General Styles */
+*{
+    font-family: "Outfit", serif;
+}
+
+
 body {
     margin: 0;
     padding: 0;
@@ -98,18 +103,18 @@ btn .btn-primary {
 
 .overlay-top::before {
     top: -1px;
-    background: url('/img/overlay-top.png');
+    background: url('../img/overlay-top.png');
 }
 
 .overlay-bottom::after {
     top: -8px;
-    background: url('/img/overlay-bottom.png');
+    background: url('../img/overlay-bottom.png');
 }
 
 .overlay-bottom {
     width: 100%;
     height: 50px;
-    background: url('/img/torn-edge.png') no-repeat bottom center;
+    background: url('../img/torn-edge.png') no-repeat bottom center;
     background-size: cover;
     position: relative;
     z-index: 1;
@@ -256,17 +261,17 @@ btn .btn-primary {
 
 }
 .category-moca {
-    background: url('/img/menu-1.jpg')  no-repeat center;
+    background: url('../img/menu-1.jpg')  no-repeat center;
     background-size: cover;
 }
 
 .category-capuchino {
-    background: url('/img/menu-2.jpg')   no-repeat  center;
+    background: url('../img/menu-2.jpg')   no-repeat  center;
     background-size: cover;
 }
 
 .category-expreso {
-    background: url('/img/menu-3.jpg') no-repeat center;
+    background: url('../img/menu-3.jpg') no-repeat center;
 background-size: cover;
 }
 .service-icon {
