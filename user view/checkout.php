@@ -1,287 +1,234 @@
 <?php
+require('../partials/usernav.php');
 require('../components/connect.php');
 require('../components/session.php');
 
+$grand_total = 0;
+$allItems = '';
+$items = [];
 
-if (isset($_SESSION['user_id'])) {
-    $user_id = $_SESSION['user_id'];
-} else {
-    $user_id = '';
-    header('location:userHome.php');
-    exit();
+$sql = "SELECT CONCAT(product_name, '(', qty, ')') AS ItemQty, total_price FROM cart";
+$stmt = $connect->prepare($sql);
+$stmt->execute();
+$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($result as $row) {
+    $grand_total += $row['total_price'];
+    $items[] = $row['ItemQty'];
 }
-
-$fetch_profile = $connect->prepare("SELECT * FROM `users` WHERE id = ?");
-$fetch_profile->execute([$user_id]);
-$fetch_profile = $fetch_profile->fetch(PDO::FETCH_ASSOC);
-
-if (isset($_POST['submit'])) {
-    $name = $_POST['name'];
-    $name = filter_var($name, FILTER_SANITIZE_STRING);
-    $number = $_POST['number'];
-    $number = filter_var($number, FILTER_SANITIZE_STRING);
-    $email = $_POST['email'];
-    $email = filter_var($email, FILTER_SANITIZE_STRING);
-    $method = $_POST['method'];
-    $method = filter_var($method, FILTER_SANITIZE_STRING);
-    $address = $_POST['address'];
-    $address = filter_var($address, FILTER_SANITIZE_STRING);
-    $total_products = $_POST['total_products'];
-    $total_price = $_POST['total_price'];
-
-    $check_cart = $connect->prepare("SELECT * FROM `cart` WHERE user_id = ?");
-    $check_cart->execute([$user_id]);
-
-    if ($check_cart->rowCount() > 0) {
-        if ($address == '') {
-            $message[] = 'Please add your address!';
-        } else {
-            
-            $insert_order = $connect->prepare("INSERT INTO `orders` (user_id, name, number, email, method, address, total_products, total_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $insert_order->execute([$user_id, $name, $number, $email, $method, $address, $total_products, $total_price]);
-
-           
-            $delete_cart = $connect->prepare("DELETE FROM `cart` WHERE user_id = ?");
-            $delete_cart->execute([$user_id]);
-
-            $message[] = 'Order placed successfully!';
-        }
-    } else {
-        $message[] = 'Your cart is empty!';
-    }
-}
+$allItems = implode(', ', $items);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout</title>
+    <meta name="description" content="Checkout page for Cafeen. Complete your coffee order and proceed to payment.">
+    <meta property="og:title" content="Cafeen - Checkout">
+    <meta property="og:image" content="img/coffee-banner.jpg">
+    <title>Cafeen - Checkout</title>
     <!-- Font Awesome -->
-     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link href="css/style.min.css" rel="stylesheet">
+    <link href="css/product.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>">
+    <link href="img/fav.ico" rel="icon">
     <style>
-        /* Custom CSS for Checkout Page */
         body {
-            background: #f9f9f9;
-            font-family: "Outfit", serif;
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            color: #333;
         }
 
-        .checkout-container {
-            max-width: 1200px;
-            margin: 50px auto;
+        .navbar-custom {
+            background-color: #8b6b61;
+        }
+
+        .jumbotron {
+            background-color: #fff;
+            border-radius: 8px;
             padding: 20px;
-            background: #fff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
-        .heading {
-            text-align: center;
-            margin-bottom: 30px;
+        .btn-primary {
+            background-color: #b87d4b;
+            border: none;
+            transition: background-color 0.3s ease;
         }
 
-        .heading h3 {
-            font-size: 2rem;
-            color: #333;
+        .btn-primary:hover {
+            background-color: #9c6840;
         }
 
-        .heading p {
-            font-size: 1.2rem;
-            color: #666;
+        .form-control:focus {
+            border-color: #b87d4b;
+            box-shadow: 0 0 5px rgba(184, 125, 75, 0.5);
         }
 
-        .cart-items {
-            margin-bottom: 30px;
+        .form-group {
+            margin-bottom: 15px;
         }
 
-        .cart-items h3 {
-            font-size: 1.5rem;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .cart-item:last-child {
-            border-bottom: none;
-        }
-
-        .cart-item .name {
-            font-size: 1.2rem;
-            color: #333;
-        }
-
-        .cart-item .price {
-            font-size: 1.2rem;
-            color: #8b6b61;
-        }
-
-        .grand-total {
-            text-align: right;
-            margin-top: 20px;
-            font-size: 1.5rem;
-            color: #333;
-        }
-
-        .grand-total .price {
-            color: #8b6b61;
+        .form-group label {
             font-weight: bold;
         }
 
-        .user-info {
-            margin-top: 30px;
-        }
-
-        .user-info h3 {
-            font-size: 1.5rem;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .user-info p {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .user-info select {
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
             width: 100%;
             padding: 10px;
-            font-size: 1rem;
             border: 1px solid #ddd;
             border-radius: 5px;
-            margin-bottom: 20px;
         }
 
-        .user-info .btn {
-            width: 100%;
-            padding: 15px;
-            background: #8b6b61;
-            color: #fff;
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        .form-group select {
+            appearance: none;
+            background-color: #fff;
+        }
+
+        .form-group input[type="submit"] {
+            background-color: #b87d4b;
+            color: white;
             border: none;
+            padding: 10px 20px;
             border-radius: 5px;
-            font-size: 1.2rem;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: background-color 0.3s ease;
         }
 
-        .user-info .btn:hover {
-            background: #6b4f4f;
+        .form-group input[type="submit"]:hover {
+            background-color: #9c6840;
         }
+        .fas{
+         color: #b87d4b;
 
-        .user-info .btn.disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
+      }
     </style>
 </head>
+
 <body>
-    <!-- Header Section -->
-
-
-    <!-- Checkout Section -->
-    <div class="checkout-container">
-        <div class="heading">
-            <h3>Checkout</h3>
-            <p><a href="home.php">Home</a> <span> / Checkout</span></p>
+    <!-- Banner Section -->
+    <header class="banner">
+        <div class="container">
+            <div class="content-banner text-center text-md-start">
+                <p class="text-primary fs-6 fw-medium mb-3">Checkout</p>
+                <h1 class="text-white display-4 fw-medium mb-4">
+                    Manage Your <br />Coffee Orders
+                </h1>
+                <a href="product.php" class="btn btn-primary text-uppercase px-5 py-3 rounded-pill">
+                    Continue Shopping
+                </a>
+            </div>
         </div>
+    </header>
 
-        <!-- Display Error Messages -->
-        <?php
-        if (!empty($message)) {
-            foreach ($message as $msg) {
-                echo '<div class="alert alert-success">' . $msg . '</div>';
-            }
-        }
-        ?>
-
-        <form action="" method="post">
-            <div class="cart-items">
-                <h3>Cart Items</h3>
-                <?php
-                $grand_total = 0;
-                $cart_items = [];
-                $select_cart = $connect->prepare("SELECT * FROM `orders` WHERE user_id = ?");
-                $select_cart->execute([$user_id]);
-                if ($select_cart->rowCount() > 0) {
-                    while ($fetch_cart = $select_cart->fetch(PDO::FETCH_ASSOC)) {
-                        $cart_items[] = $fetch_cart['name'] . ' (' . $fetch_cart['price'] . ' x ' . $fetch_cart['quantity'] . ') - ';
-                        $grand_total += ($fetch_cart['price'] * $fetch_cart['quantity']);
-                ?>
-                        <div class="cart-item">
-                            <span class="name"><?= $fetch_cart['name']; ?></span>
-                            <span class="price">$<?= $fetch_cart['price']; ?> x <?= $fetch_cart['quantity']; ?></span>
-                        </div>
-                <?php
-                    }
-                } else {
-                    echo '<p class="empty">Your cart is empty!</p>';
-                }
-                ?>
-                <div class="grand-total">
-                    <span class="name">Grand Total:</span>
-                    <span class="price">$<?= $grand_total; ?></span>
-                </div>
-                <a href="cart.php" class="btn">View Cart</a>
-            </div>
-
-            <input type="hidden" name="total_products" value="<?= implode(', ', $cart_items); ?>">
-            <input type="hidden" name="total_price" value="<?= $grand_total; ?>">
-            <input type="hidden" name="name" value="<?= $fetch_profile['name']; ?>">
-            <input type="hidden" name="email" value="<?= $fetch_profile['email']; ?>">
-
-            <div class="user-info">
-                <h3>Your Info</h3>
-                <p><i class="fas fa-user"></i><span><?= $fetch_profile['name']; ?></span></p>
-                <p><i class="fas fa-envelope"></i><span><?= $fetch_profile['email']; ?></span></p>
-
-                <select name="method" class="box" required>
-                    <option value="" disabled selected>Select Payment Method --</option>
-                    <option value="cash on delivery">Cash on Delivery</option>
-                    <option value="credit card">Credit Card</option>
-                    <option value="paytm">Paytm</option>
-                    <option value="paypal">Paypal</option>
-                </select>
-
-                <input type="submit" value="Place Order" class="btn-primary" name="submit">
-            </div>
-        </form>
+    <!-- Button Group -->
+    <div class="container-fluid bg-dark py-2">
+        <div class="d-flex justify-content-center gap-3">
+            <a href="product.php" class="btn btn-outline-light">
+                <i class="fas fa-coffee me-2"></i>Products
+            </a>
+            <!-- <a href="#" class="btn btn-outline-light">
+                <i class="fas fa-th-list me-2"></i>Categories
+            </a> -->
+            <a href="checkout.php" class="btn btn-outline-light">
+                <i class="fas fa-money-check-alt me-2"></i>Checkout
+            </a>
+            <a href="cart.php" class="btn btn-outline-light position-relative">
+                <i class="fas fa-shopping-cart"></i>
+                <span id="cart-item" class="badge bg-danger position-absolute top-0 start-100 translate-middle">0</span>
+            </a>
+        </div>
     </div>
 
-    <!-- Footer Section -->
+    <!-- Checkout Form -->
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 px-4 pb-4" id="order">
+                <h4 class="text-center text-info p-2">Complete your order!</h4>
+                <div class="jumbotron p-3 mb-2 text-center">
+                    <h6 class="lead"><b>Product(s) : </b><?= htmlspecialchars($allItems); ?></h6>
+                    <h5><b>Total Amount Payable : </b><?= number_format($grand_total, 2) ?> EGP</h5>
+                </div>
+                <form action="" method="post" id="placeOrder">
+                    <input type="hidden" name="products" value="<?= htmlspecialchars($allItems); ?>">
+                    <input type="hidden" name="grand_total" value="<?= htmlspecialchars($grand_total); ?>">
+                    <div class="form-group">
+                        <input type="text" name="name" class="form-control" placeholder="Enter Name" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" class="form-control" placeholder="Enter E-Mail" required>
+                    </div>
+                    <!-- <div class="form-group">
+                        <input type="tel" name="phone" class="form-control" placeholder="Enter Phone" required>
+                    </div> -->
+                    <div class="form-group">
+                        <textarea name="room_no" class="form-control" rows="3" placeholder="Enter room number Here..." required></textarea>
+                    </div>
+                    <!-- <h6 class="text-center lead">Select Payment Mode</h6>
+ <div class="form-group">
+                        <select name="pmode" class="form-control" required>
+                            <option value="" selected disabled>-Select Payment Mode-</option>
+                            <option value="netbanking">Net Banking</option>
+                            <option value="cards">Debit/Credit Card</option>
+                        </select>
+                    </div> --> 
+                    <div class="form-group">
+                     <a href="order.php">   <input type="submit" name="submit" value="Place Order" class="btn btn-primary btn-block"></a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
+    <?php require('../partials/footer.php'); ?>
 
-    <!-- Custom JS -->
-    <script src="js/script.js"></script>
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            
+            $("#placeOrder").submit(function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: 'action.php',
+                    method: 'post',
+                    data: $('form').serialize() + "&action=order",
+                    success: function(response) {
+                        $("#order").html(response);
+                    }
+                });
+            });
+
+            // Load total no.of items added in the cart and display in the navbar
+            load_cart_item_number();
+
+            function load_cart_item_number() {
+                $.ajax({
+                    url: 'action.php',
+                    method: 'get',
+                    data: {
+                        cartItem: "cart_item"
+                    },
+                    success: function(response) {
+                        $("#cart-item").html(response);
+                    }
+                });
+            }
+        });
+    </script>
 </body>
+
 </html>
