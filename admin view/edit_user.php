@@ -22,8 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_type = $_POST['user_type'];
     $email = $_POST['email'];
 
-    // Handle image upload
-    $picture = $user['picture']; // Keep the old picture if not uploaded
+    $picture = $user['picture']; 
     if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
         $imageName = $_FILES['image']['name'];
         $imageTmpName = $_FILES['image']['tmp_name'];
@@ -44,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'name' => $name,
         'email' => $email,
         'user_type' => $user_type,
-        'picture' => $picture,
+        'picture' => $imageName,
         'id' => $userId
     ];
     if ($user_type == 'user') {

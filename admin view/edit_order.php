@@ -90,6 +90,18 @@ if (isset($_POST['delete_product'])) {
     header("Location: edit_order.php?id=$orderId");
     exit;
 }
+
+
+$statuses = ['processing', 'delivered','shipped'];
+if (isset($_POST['status'])){
+    $status = $_POST['status'];
+    $updateStatus = "update orders set status = ? where id = ?";
+    $updateStmt = $connect->prepare($updateStatus);
+    $updateStmt->execute([$status, $orderId]);
+}
+
+
+
 ?>
 
 <!DOCTYPE html>
@@ -98,40 +110,48 @@ if (isset($_POST['delete_product'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Order</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aclonica&family=Aubrey&family=Birthstone&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Lexend+Deca:wght@100..900&family=Merienda:wght@300..900&family=Micro+5&family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Outfit:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Playwrite+IE+Guides&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Silkscreen:wght@400;700&family=Tiny5&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- Font Awesome for icons -->
     <style>
         body {
             background-color: #f4f1e1;
             color: #5a3e36;
+            font-family: "Outfit", serif;
         }
         .container {
-            background-color: #fff5e6;
+            background-color: #d5bf9d;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         h2, h4 {
-            color: #3e2723;
+            color: #8b6b61;
         }
         .table th, .table td {
             text-align: center;
         }
         .btn-custom {
-            background-color: #6f4f30;
+            background-color: #8b6b61;
             color: #fff;
         }
         .btn-custom:hover {
-            background-color: #8c6e4e;
+            background-color: #c79e83;
         }
         .btn-icon {
-            background-color: #d2b4a3;
+            background-color: #8b6b61;
             color: #fff;
             font-size: 18px;
         }
         .btn-icon:hover {
             background-color: #c79e83;
         }
+        .btn:hover{
+            color: white;
+        }
+        
     </style>
 </head>
 <body>
@@ -182,7 +202,7 @@ if (isset($_POST['delete_product'])) {
     <form method="POST" class="row g-3">
         <div class="col-md-6">
             <label for="product_id" class="form-label">Select Product</label>
-            <select name="product_id" id="product_id" class="form-select" required>
+            <select name="product_id" id="product_id" class="form-select">
                 <option value="">Select a Product</option>
                 <?php foreach ($products as $product): ?>
                     <option value="<?php echo htmlspecialchars($product['id']); ?>">
@@ -193,8 +213,17 @@ if (isset($_POST['delete_product'])) {
         </div>
         <div class="col-md-4">
             <label for="quantity" class="form-label">Quantity</label>
-            <input type="number" name="quantity" id="quantity" class="form-control" min="1" required>
+            <input type="number" name="quantity" id="quantity" class="form-control" min="1">
         </div>
+        <div class="col-md-6">
+        <label for="status" class="form-label">Select the status</label>
+            <select name="status" id="status" class="myselect form-select">
+                <option value="" disabled selected>Select the Status</option>
+                <?php foreach ($statuses as $status ) :?>
+                <option value="<?=$status?>"><?=$status?></option>
+                <?php endforeach ?>
+                </select>
+            </div>
         <div class="col-md-2">
             <label class="form-label">&nbsp;</label>
             <button type="submit" name="add_product" class="btn btn-custom w-100"><i class="fas fa-plus-circle"></i> Add</button>
