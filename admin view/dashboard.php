@@ -23,7 +23,11 @@
     $statement = $connect->prepare($totalProducts);
     $statement->execute();
     $resultProduct = $statement->fetchAll(PDO::FETCH_ASSOC);
-    // $conn->close();
+
+    $totalPrice = "SELECT SUM(PRICE) as total FROM order_details";
+    $statement = $connect->prepare($totalPrice);
+    $statement->execute();
+    $resultPrice = $statement->fetchAll(PDO::FETCH_ASSOC);
     ?>
 
  <!DOCTYPE html>
@@ -93,7 +97,7 @@
      <?php require('sidebar.inc.php'); ?>
      <h1>Welcome to Dashboard</h1>
      <div class="container-fluid">
-         <div class="row">
+         <div class="row mt-5">
              <div class="col-md-4">
                  <div class="card stat-card text-center">
                      <h3>Total Users</h3>
@@ -121,6 +125,18 @@
                      </p>
                  </div>
              </div>
+         </div>
+         <div class="row mt-5">
+            <div class="col-md-2"></div>
+            <div class="col-md-8">
+            <div class="card stat-card text-center">
+                     <h3>Total Income</h3>
+                     <p>
+                         <?= $resultPrice[0]['total'] ?? 0; ?>
+                     </p>
+                 </div>
+            </div>
+            <div class="col-md-2"></div>
          </div>
      </div>
 

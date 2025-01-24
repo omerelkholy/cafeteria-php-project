@@ -158,7 +158,7 @@ foreach ($orderDetails as $detail) {
                     <tr>
                         <td><?php echo htmlspecialchars($detail['product_name']); ?></td>
                         <td><?php echo htmlspecialchars($detail['quantity']); ?></td>
-                        <td><?= $detail['price'] * $detail['quantity'] ?> EGP</td>
+                        <td><?= $detail['price'] ?> EGP</td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>

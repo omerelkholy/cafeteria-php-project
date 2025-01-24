@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .cart-container h2 {
-            color: #8B4513;
+            color: #8b6b61;
             margin-bottom: 20px;
             font-weight: 600;
         }
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .btn-confirm {
-            background-color: #8B4513;
+            background-color: #8b6b61;
             color: #fff;
             margin-top: 20px;
             transition: background-color 0.3s ease;
@@ -142,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .btn-confirm:hover {
-            background-color: #6e3610;
+            background-color: #a38181;
             color: white;
         }
 
@@ -154,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .room-selection select:focus {
-            border-color: #8B4513;
+            border-color: #8b6b61;
             outline: none;
         }
 
@@ -264,7 +264,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .quantity-control button {
-            background-color: #8B4513;
+            background-color: #8b6b61;
             color: #fff;
             border: none;
             padding: 5px 10px;
@@ -275,7 +275,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .quantity-control button:hover {
-            background-color: #6e3610;
+            background-color: #a38181;
         }
 
         .quantity-control span {
@@ -284,7 +284,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .navbar {
-            background-color: #8B4513;
+            background-color: #8b6b61;
             color: #fff;
             padding: 10px 20px;
             border-radius: 10px;

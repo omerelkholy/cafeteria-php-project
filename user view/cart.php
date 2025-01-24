@@ -220,7 +220,7 @@ require('../components/connect.php');
                                 </td>
                                 <input type="hidden" class="pprice" value="<?= htmlspecialchars($row['product_price']) ?>">
                                 <td>
-                                    <input type="number" class="form-control itemQty" value="<?= htmlspecialchars($row['qty']) ?>" style="width:75px;">
+                                    <input type="number" class="form-control itemQty" value="<?= htmlspecialchars($row['qty']) ?>" style="width:75px;" disabled>
                                 </td>
                                 <td><i class="fas fa-coffee"></i>&nbsp;&nbsp;<?= number_format($row['total_price'], 2); ?> EGP</td>
                                 <td>
