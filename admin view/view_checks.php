@@ -283,9 +283,9 @@ if (isset($_POST['delete_order_id'])) {
                                     if ($order['status'] == 'processing') {
                                         echo '<i class="bi bi-arrow-repeat"></i> Processing';
                                     } elseif ($order['status'] == 'delivered') {
-                                        echo '<i class="bi bi-truck"></i> delivery';
+                                        echo '<i class="bi bi-truck"></i> Delivered';
                                     } elseif ($order['status'] == 'shipped') {
-                                        echo '<i class="bi bi-check-circle"></i> shipped';
+                                        echo '<i class="bi bi-check-circle"></i> Shipped';
                                     }
                                 ?>
                             </td>
